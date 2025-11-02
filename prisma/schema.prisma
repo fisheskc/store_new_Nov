@@ -1,0 +1,25 @@
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  directUrl         = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Product {
+  id           String     @id @default(uuid())
+  name        String
+  company     String
+  description String
+  featured   Boolean
+  // A URL path which is going to lead back to our superbase instance
+  image       String
+  price       Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  // A value we are going to get from our authentication provider the sevice by the name of Clerk
+  // This will be the admin user ID
+  clerkId  String
+}
