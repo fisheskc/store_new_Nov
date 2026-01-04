@@ -14,7 +14,7 @@ import {
 } from './schemas';
 import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
-import { Favorite } from "../app/generated/prisma/client";
+// import { Favorite } from "../app/generated/prisma/client";
 
 const getAuthUser = async () => {
   const user = await currentUser()
