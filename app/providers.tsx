@@ -1,5 +1,6 @@
 // client component
 'use client'
+import { memo } from 'react';
 import { ThemeProvider } from './theme-providers';
 
 function Providers({children}: {children:React.ReactNode}) {
@@ -17,4 +18,4 @@ function Providers({children}: {children:React.ReactNode}) {
   )
 }
 
-export default Providers
+export default memo(Providers)

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import './globals.css';
+import './global.css';
 import Navbar from '@/components/navbar/Navbar';
 import Container from '@/components/global/Container';
 import Providers from './providers';
@@ -15,10 +15,10 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    // <ClerkProvider dynamic>
+  children: React.ReactNode; 
+ }> ) {
+return (
+  // <ClerkProvider dynamic>
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
     <html lang='en' suppressHydrationWarning>
         <body className={inter.className}>

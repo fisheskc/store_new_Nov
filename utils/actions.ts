@@ -1,6 +1,7 @@
 'use server';
-
-import db from '@/utils/db';
+import { PrismaClient, Prisma } from "../app/generated/prisma/client";
+// import { prisma as db } from '@/utils/db';
+import prisma from '@/utils/db';
 import { currentUser, auth } from '@clerk/nextjs/server';
 // import { create } from 'domain';
 // If we cannot find any matching product, we want the user to be redirected to the homepage
@@ -11,10 +12,11 @@ import {
   productSchema,
   validateWithZodSchema,
 } from './schemas';
-import { uploadImage } from './supabase';
-// import { revalidatePath } from 'next/cache';
+import {deleteImage, uploadImage } from './supabase';
+import { revalidatePath } from 'next/cache';
+import { Favorite } from '../app/generated/prisma/index';
 
-const getAuthUser = async() => {
+const getAuthUser = async () => {
   const user = await currentUser()
   // If there is no user, we are going to redirect back to the home page
   if(!user) {
@@ -24,7 +26,7 @@ const getAuthUser = async() => {
   return user
 }
 
-const getAdminUser = async() => {
+const getAdminUser = async () => {
   const user = await getAuthUser();
   // We are going to check for admin user
   // If the ID does not match, then essentially, we are going to redirect to the homepage
@@ -45,7 +47,8 @@ const renderError = (error:unknown): {message:string} => {
 }   
 
 export const fetchFeaturedProducts = async () => {
-  const products = await db.product.findMany({
+  await getAdminUser()
+  const products = await prisma.product.findMany({
     where: {
         // We get the products where the featured flag is set to true
         featured:true
@@ -61,7 +64,7 @@ export const fetchFeaturedProducts = async () => {
 // We want to set up the type & we will use search
 export const fetchAllProducts = async({ search = '' }: { search: string }) => {
     // We want to return the DB
-    return db.product.findMany({
+    return prisma.product.findMany({
         where:{
         // We need to use the syntax of OR, since we want to search into places in the company property
         //  as well as the name. We set it equal to an array. We set up two objects, one for each property
@@ -83,7 +86,7 @@ export const fetchAllProducts = async({ search = '' }: { search: string }) => {
 }
 // We will provide the productId & we will get it from the searchParams
 export const fetchSingleProduct = async(productId:string) => {
-    const product = await db.product.findUnique({
+    const product = await prisma.product.findUnique({
         // We have two options, we have the entire product or it is going to be null
         where: {
             id:productId
@@ -116,19 +119,18 @@ export const createProductAction = async (
   // There should definitely be a user & we can access the user.id
     // const user = await currentUser()
     // typescript sees that if there is no user, we stop the execution
-    // if(!user redirect('/'))
+  //  if(!user redirect('/'))
     // We want to get the values out of the form data
     // We will use the get method & we will provide the name of the input
     // We are going to communicate with the database
-    const user = await getAuthUser()
+   const user = await getAuthUser()
     try {
       // Unlike the previous inputs, we do not want to access it from rawData
       const rawData = Object.fromEntries(formData)
-      // We do want to access actually image manually.
+      // // We do want to access actually image manually.
       const file = formData.get('image') as File
-      // In order to do that, we need to use as a file
-      // const file = FormData.get('image') as File
-      console.log(rawData)
+      // // In order to do that, we need to use as a file
+      // console.log(rawData)
       // This will throw the error immediately if the values do not match
       // If we are successful, we will have a toast message created
       // If not we will have a big error message. 
@@ -141,34 +143,37 @@ export const createProductAction = async (
       // We will pass everything correctly in as an object
       // We will use image, because that is the property
       const validatedFile = validateWithZodSchema(imageSchema, { image: file });
+      console.log(validatedFile)
       // Unlike the previous inputs, we do not want to access it from the rawData
       // We will pass everything in as an object
       // We are getting back an object & it is located in the image property
       const fullPath = await uploadImage(validatedFile.image);
-      await db.product.create({
-      data: {
-        ...validatedFields,
-        image: fullPath,
-        clerkId: user.id
-      }
-     })
+         await prisma.product.create({
+         data: {
+            ...validatedFields,
+            image: fullPath,
+            clerkId: user.id
+          }
+        })
+      // return {message: 'product created'}
       // return {message: 'product created'}
     } catch(error) {
-      console.log(error)
-      // We access the error class, if that is the case, we use error.message
+      // return { message: 'there wqas an error...'}
+      // console.log(error)
+      // // We access the error class, if that is the case, we use error.message
       return renderError(error)
     }
     // If we are successful, We will redirect the admin user to the product page
     // where we display right away all of the products
     // If not, then we are going to display the error message in the toast
-    redirect('/admin/products')
+   redirect('/admin/products')
   }
 
 // We want to check whether it is an admin user
 export const fetchAdminProducts = async () => {
   await getAdminUser()
   // We want to look for all of the products
-  const products = await db.product.findMany({
+  const products = await prisma.product.findMany({
     orderBy: {
       // We will be using descending
       createdAt:'desc',
@@ -177,20 +182,177 @@ export const fetchAdminProducts = async () => {
   return products
 }
 // We know that we are going to be passing in the product ID
-// export const deleteProductAction = async(prevState:{productId:string}) => {
-//   // We destructure this
-//   const {productId} = prevState
-//   await getAdminUser()
-//   try {
-//    const product =  await db.product.delete({
-//       where: {
-//         id: productId
-//       }
-//     })
-//     // await deleteImage(product.image);
-//     revalidatePath('/admin/products');
-//     return {message: 'product removed'}
-//   } catch(error) {
-//     return renderError(error)
-//   }
-// }
+export const deleteProductAction = async(prevState:{productId:string}) => {
+  // We destructure this
+  const {productId} = prevState
+  await getAdminUser()
+  try {
+   const product =  await prisma.product.delete({
+      where: {
+        id: productId
+      }
+    })
+    await deleteImage(product.image);
+    revalidatePath('/admin/products');
+    return {message: 'product removed'}
+  } catch(error) {
+    return renderError(error)
+    }
+  }
+
+  export const fetchAdminProductDetails = async(productId:string) =>{
+    if (!productId) {
+    throw new Error("productId is missing");
+  }
+    await getAdminUser()
+    // We fetch the product by its unique ID.
+    const product = await prisma.product.findUnique({
+      where:{
+        // We cannot find the product, we will navigate to /admin/products
+        id:productId
+      }
+    })
+      // If its in correct, then we will redirect back to /admin/products
+      if(!product) {
+       redirect('/admin/products')
+        // throw new Error("Product not found");
+      }
+      return product
+    }
+  
+    export const updateProductAction = async(prevState:any, formData:FormData) => {
+      // We return an object with a message
+      await getAdminUser()
+      try {
+        const productId = formData.get('id') as string
+        const rawData = Object.fromEntries(formData)
+        const validatedFields = validateWithZodSchema(productSchema, rawData)
+        await prisma.product.update({
+          where: {
+            id:productId
+          },
+          data: {
+            ...validatedFields  
+          }
+        })
+        revalidatePath(`/admin/products/${productId}/edit`)
+        return {message:'Product updated successfully'}
+      } catch(error) {
+        return renderError(error)
+      }
+    }
+
+    export const updateProductImageAction = async(prevState:any, formData:FormData) => {
+      // We return an object with a message
+      await getAuthUser()
+      // We are going to start by accessing the image as a file, a product ID, an old image URL
+      try {
+        const image = formData.get('image') as File
+        const productId = formData.get('id') as string
+        const oldImageUrl = formData.get('url') as string
+        const validatedFile = validateWithZodSchema(imageSchema, {image})
+        // We want to use the full path from the supabase & we need to run our upload image
+        // If we are successful, we want to delete the old image
+        // We will use another helper function from supabase, deleteImage
+        const fullPath = await uploadImage(validatedFile.image)
+        await deleteImage(oldImageUrl);
+        await prisma.product.update({
+          where: {
+            id: productId
+          },
+          data: {
+            image: fullPath
+          }
+        })
+        // We need to revalidaate the path
+       revalidatePath(`/admin/products/${productId}/edit`) 
+         // We return an object with a message
+      return {message:'Product Image updated successfully'}
+      } catch(error) {
+        return renderError(error)
+      }
+    }
+    
+    // we just want to return an object & we provide a message
+    export const toggleFavoriteAction = async (prevState:{
+      productId:string,
+      favoriteId:string | null,
+      // We will revalidate this specific path, FavoriteToggleButton
+      // Depending on the FavoriteId, either we are going to return remove from faves
+      // or added it to the faves
+       pathname:string}) => {
+        const user = await getAuthUser()
+        // If favoriteId exists & it is not null, then we are going to remove the instance from the database
+        // If not equal, if favoriteId is equal to null, then we want to create a new instance
+        const {productId, favoriteId, pathname} = prevState
+        try {
+          if(favoriteId) {
+            await prisma.favorite.delete({
+              where: {
+                id: favoriteId
+              },
+            })
+          } else {
+            await prisma.favorite.create({
+              data: {
+                productId,
+                clerkId: user.id
+              }
+            })
+          }
+          revalidatePath(pathname)
+          // We want to check what is the favoriteId value. If it is true, we will use removed,
+          // and that we invoked this functionality: await prisma.favorite.delete({
+          // If it is actually false, we add to faves  
+          return {message:favoriteId? 'removed from faves' : 'added to faves'}
+        }  catch(error) {
+          return renderError(error) 
+        }
+    }
+
+    // It is going to be looking for the productId
+    export const fetchFavoriteId = async ({ productId }: { productId: string }) => {
+      const user = await getAuthUser()
+      // We want to check in the favourites, whether we can find the favourite
+      // where the product ID is equal to the ID that we are passing in.
+      // The Clerk ID is equal to a user ID
+      // We are looking for a favourite instance
+      // If it is there, then we want to return a favourite ID
+      // if not, then we are returning null
+      // We have clerkid & the productId. Based on these two values, we are going to see whether the product
+      // is already in the user's favourites
+      // If it is, we diaplay the icon
+      // If not, we display another one
+       const favorite = await prisma.favorite.findFirst({
+          where: {
+          productId,
+          clerkId: user.id,
+     },
+      // As far as the response, we are looking for the ID & therefore we are going to use the select clause,
+          select:{
+            // If we are successful, we are only getting back the Id
+            // If not, if there is no instance, then we are going to get back null
+            // If the ID is present, we want to return that property
+            // Since it can potentially be null, we need to set up the optional chaining
+             id: true,
+    },
+  });
+  return favorite?.id || null;
+};   
+
+export const fetchUserFavorites = async () => {
+  const user = await getAuthUser()
+  // We have connected the models, & if we want to get more than just the propertie,
+  // We have on the favourites, we have a special keyword, "include" & we want to add the product
+  const favorites = await prisma.favorite.findMany({
+    // We are fetching all of the user's favorites
+    where: {
+      // We are going to use clerkId to equal user.id
+      clerkId: user.id
+    },
+    include: {
+      product:true,
+    }
+})
+  return favorites
+}

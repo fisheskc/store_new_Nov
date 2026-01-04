@@ -1,4 +1,5 @@
 'use client'
+import { memo } from 'react';
 
 import LoadingContainer from '@/components/global/LoadingContainer';
 
@@ -8,4 +9,4 @@ function loading() {
   )
 }
 
-export default loading
+export default memo(loading)

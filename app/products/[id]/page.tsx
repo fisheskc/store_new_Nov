@@ -2,7 +2,7 @@ import BreadCrumbs from '@/components/single-product/BreadCrumbs';
 import { fetchSingleProduct } from '@/utils/actions';
 import Image from 'next/image';
 import { formatCurrency } from '@/utils/format';
-import FavoriteToggleButton from '@/components/products/FavoriteToggleButton';
+// import FavoriteToggleButton from '@/components/products/FavoriteToggleButton';
 import AddToCart from '@/components/single-product/AddToCart';
 import ProductRating from '@/components/single-product/ProductRating';
 // // import { auth } from '@clerk/nextjs/server';
@@ -39,7 +39,7 @@ async function SingleProductPage({ params }: { params: Promise<{id: string }> })
           <div className='flex gap-x-8 items-center'>
             <h1 className='capitalize text-3xl font-bold'>{name} </h1>
             <div className='flex items-center gap-x-2'>
-              <FavoriteToggleButton productId={id} />
+              {/* <FavoriteToggleButton productId={id} /> */}
             </div>
           </div>
           <ProductRating productId={id} />

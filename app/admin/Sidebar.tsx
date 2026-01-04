@@ -1,4 +1,5 @@
 'use client';
+import { memo } from 'react';
 import { adminLinks } from '@/utils/links';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,4 +37,4 @@ function Sidebar() {
     </aside>
   );
 }
-export default Sidebar;
+export default memo(Sidebar);

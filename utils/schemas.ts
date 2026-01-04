@@ -79,7 +79,7 @@ export function validateWithZodSchema<T>(
      // If this is equal to false, then we wamt to iterate over the array & get those messgaes
       if(!result.success) {
         // We are going to reference as an error & we will pull out the message property
-        const errors = result.error.errors.map((error) => error.message);
+        const errors = result.error.issues.map((error) => error.message);
         // We will pass the error dowm to our catch
         // Remember we have the render error. It is going to be the instance of the error class. Since we potentially can have a multiple, we can join them on the comma. If everything is correct, we should have very useful error messages in the browser
         // We have an issue, we throw a new error

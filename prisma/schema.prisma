@@ -1,11 +1,19 @@
-datasource db {
-  provider          = "postgresql"
-  url               = env("DATABASE_URL")
-  directUrl         = env("DIRECT_URL")
-}
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../app/generated/prisma/client"
+  // moduleFormat           = "esm"
+  // generatedFileExtension = "ts"
+  // importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 model Product {
@@ -22,4 +30,19 @@ model Product {
   // A value we are going to get from our authentication provider the sevice by the name of Clerk
   // This will be the admin user ID
   clerkId  String
+  // This is going to reference our Favourite model
+  // Each product is going to have an array of favourites
+  // Everytime we create the favourite, we pick the product & that is going to be added to this array
+  // Since we have this relationship in place, we fetch tghe favourites, we will also be able to access the info on a product.
+  // 
+  favorites Favorite[]
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  clerkId  String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

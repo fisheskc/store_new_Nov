@@ -8,6 +8,7 @@ import { SignInButton } from '@clerk/nextjs';
 import { FaRegHeart, FaHeart } from 'react-icons/fa';
 // import { FaRegHeart, FaHeart, FaPenSquare } from 'react-icons/fa';
 import { LuTrash2, LuPen } from 'react-icons/lu';
+import { Card } from '@/components/ui/card';
 
 type btnSize = 'default' | 'lg' | 'sm';
 
@@ -27,7 +28,7 @@ export function SubmitButton({
   const { pending } = useFormStatus();
   // Where it is going to be disabled?
   // When the pending is true
-  // We use the helper function cn to combine the class names together
+  // We use the helper function to combine the class names together
   // Inside of the pending of the button, we are going to show a loading icon if the form is pending
     // If it is not pending, we are going to show the text that was passed in
     // Inside the fragment there will be two things, the ReloadIcon
@@ -57,11 +58,11 @@ type actionType = 'edit' | 'delete'
 export const IconButton = ({ actionType }: { actionType: actionType }) => {
       // We want to use the pending one. This will be the submit button, so we can check
       // for pending value. We will use the pending value in order to display the spinner
-   const {pending} = useFormStatus()
+ const {pending} = useFormStatus()
       // We will check what is the action type & we will render the icon
       // If we are pending, it means we are communicating with the database
       // Therefore, we will display the reload icon & if we are not pending, we want to display one of the icons.
-   const renderIcon = () => {
+  const renderIcon = () => {
     switch (actionType) {
       case 'edit':
         return <LuPen />;
@@ -83,3 +84,37 @@ export const IconButton = ({ actionType }: { actionType: actionType }) => {
     </Button>
   );
 };
+
+// This is the sign in button from Shadci. That is the one we display, if the user has not logged in. 
+export const CardSignInButton = () => {
+  // We just want to render the sign in button from Clerk
+  return (
+    <SignInButton mode='modal'>
+    <Button type='button' size='icon' variant='outline' className='p-2 cursor-point' asChild>
+      <FaRegHeart />
+    </Button>
+  </SignInButton>
+  )
+}
+
+// We are going to pass in the product
+export const CardSubmitButton = ({isFavorite}:{isFavorite:boolean}) => {
+  const {pending} = useFormStatus()
+  // We return a button where we will display the icon based on the pending value.
+  // We just want to provide what we are going to render, if we are pending
+  // If we are pending, we are displaying the reload icon. If not, then we are going to use a nested ternary operator
+  // We are going to check the isFavourite value.
+  // If it is the case, we are just going to use the heart icon
+  // If it is not the case, we will display the same icon
+  return (
+    <Button type='submit' size='icon' variant='outline' className='p-2 cursor-pointer'>
+    {pending ? (
+      <ReloadIcon className='animate-spin'/> 
+      ) :isFavorite ? (
+      <FaHeart />
+      ) : (
+      <FaRegHeart />
+      )}
+  </Button>
+  )
+}

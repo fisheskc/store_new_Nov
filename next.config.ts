@@ -1,15 +1,15 @@
-import path from "path";
-import { fileURLToPath } from "url";
+// /** @type {import('next').NextConfig} */
+import  { NextConfig } from 'next'
+// import type { NextConfig } from 'next';
+import { Configuration } from 'webpack';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url)); // R:\test\apps\docs
+// const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// import type { NextConfig } from "next";7
-/** @type {import('next').NextConfig} */
-
-const nextConfig = {
   /* config options here */
-  reactStrictMode: true,
-  turbopack: { root: path.resolve(__dirname, "../../") }, // R:\test
+  // reactStrictMode: true,
+  // turbopack: { root: path.resolve(__dirname, "../../") }, // R:\test
   //  pageExtensions: [
   //       "page.tsx",
   //       "page.ts",
@@ -19,15 +19,20 @@ const nextConfig = {
         // https://github.com/vercel/next.js/issues/65447
     //     "ts"
     // ],
-  //   test: /\.tsx?$/,
-  //   use: [
-  //     {
-  //      loader: 'ts-loader',
-  //       options: {
-  //         transpileOnly: true
-  //       }
-  //     }
-  // ],
+const nextConfig: NextConfig = {
+  reactStrictMode: false,
+  webpack: (config: Configuration) => {
+    // Suppress source map warnings from node_modules
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      { module: /node_modules/, message: /Failed to parse source map/ }
+    ];
+    return config;
+  },
+
+
+  turbopack: {},
+  
   images: {
     remotePatterns: [
         {
@@ -36,14 +41,17 @@ const nextConfig = {
       },
         {
         protocol: 'https',
-        hostname: 'aubvbrlscmmlygjlapzn.supabase.co',
+        // hostname: "316RIYY50Q14v1B5UtBziVp8E9j.supabase.co",
+        hostname: "aubvbrlscmmlygjlapzn.supabase.co",
+        port: '',
+        pathname: '/**',
         },
         {
           protocol: "https",
           hostname: "img.clerk.com",
         },
-    ],
-  },
+    ]
+  }
 };
 
 export default nextConfig;

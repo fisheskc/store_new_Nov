@@ -15,10 +15,12 @@ export default clerkMiddleware(async(auth, req) => {
     // console.log(auth().userId)
  
     const { userId } = await auth();
-     console.log(" This is userId")
-    // console.log(userId)
+    console.log(" This is userId")
+    console.log(userId)
+   
     const isAdminUser = userId === process.env.ADMIN_USER_ID
-
+     console.log(" This is isAdminUser")
+    console.log(isAdminUser)
     // If the user is trying to access the admin route. In that case, we redirect the user back
     if(isAdminRoute(req) && !isAdminUser) {
         // We want to return a Next response & we need to make sure it is coming from the server

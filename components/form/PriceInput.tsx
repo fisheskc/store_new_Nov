@@ -1,6 +1,6 @@
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Prisma } from '@prisma/client';
+import { PrismaClient, Prisma } from '../../app/generated/prisma/client';
 // if you want to access the properties, it is Prisma
 // Look for the correct model & in this case it is going to be a product one
 // Then access the matching property using prisma
