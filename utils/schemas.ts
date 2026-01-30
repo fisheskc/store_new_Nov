@@ -18,7 +18,7 @@ export const productSchema = z.object({
   // & the second one is going to be the error message
   description: z.string().refine(
     (description) => {
-      const wordCount = description.split(' ').length;
+      const wordCount = description.split(/\s+/).length;
       // If we return falsey means that we will trigger the error
       // In that case, the message will be displayed
        return wordCount >= 10 && wordCount <= 1000;
@@ -79,11 +79,11 @@ export function validateWithZodSchema<T>(
      // If this is equal to false, then we wamt to iterate over the array & get those messgaes
       if(!result.success) {
         // We are going to reference as an error & we will pull out the message property
-        const errors = result.error.issues.map((error) => error.message);
+        const errors = result.error.issues.map((issue) => issue.message);
         // We will pass the error dowm to our catch
         // Remember we have the render error. It is going to be the instance of the error class. Since we potentially can have a multiple, we can join them on the comma. If everything is correct, we should have very useful error messages in the browser
         // We have an issue, we throw a new error
-        throw new Error(errors.join(','));
+        throw new Error(errors.join(', '));
       }
       // If you want to return the result, you will have to spread out the properties in the action.
       // In our case, we do not want to do that & we use result.data

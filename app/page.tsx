@@ -7,6 +7,7 @@ import  { Suspense } from 'react'
 function HomePage() {
   return (
     <>
+   
      <Hero />
      <Suspense fallback = {<LoadingContainer />}>
         <FeaturedProducts />

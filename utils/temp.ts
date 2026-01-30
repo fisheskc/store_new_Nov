@@ -18,71 +18,45 @@ const getOptionalUser = async () => {
 
 const requireUser = async () => {
   const user = await currentUser()
-    // If there is no user, we are going to redirect back to the home page
   if (!user) redirect('/login')
-      // If everything is correct, we are going to return the user
   return user
 }
 
 const requireAdmin = async () => {
   const user = await requireUser()
-   // We are going to check for admin user
-  // If the ID does not match, then essentially, we are going to redirect to the homepage
-  // We only want the admin user to have access to the data
-  // If a user gets access to the page, they will not be able to see any data
-  // You can force your way to the admin product, but you are not going to see any data
-  // because your ID does not match the admin one. You will just be directed to the homepage
   if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
-  // If everything is correct we return a user
-  // In some cases we are going to use the user value
   return user
 }
 
 const renderError = (error:unknown): {message:string} => {
-// We access the error class, if that is the case, we use error.message
   console.log(error)
       return {message:error instanceof Error ? error.message : 'an error occurred'}
 }   
 
 export const fetchFeaturedProducts = async () => {
-// We get the products where the featured flag is set to true
   return prisma.product.findMany({
     where: { featured: true },
     orderBy: { createdAt: 'desc' }
   })
 }
 
-// We set up a function to fetch all of the prodcut
-// We will set this as the default value, empty string
-// If this is going to be undefined, we will have no products
-// If there is no value, we want to provide all of the product
-// We want to set up the type & we will use search
+
 export const fetchAllProducts = async({ search = '' }: { search: string }) => {
-    // We want to return the DB
     return prisma.product.findMany({
         where:{
-            // We need to use the syntax of OR, since we want to search into places in the company property
-        //  as well as the name. We set it equal to an array. We set up two objects, one for each property
-        // name is going to be equal to contains, which is a special keyword
-        // We provide the search
-        // Make sure the mode is set to equal to insensitive
           OR: [
         { name: { contains: search, mode: 'insensitive' } },
         { company: { contains: search, mode: 'insensitive' } },
       ],
     },
-        // In this case, we want to set up the order
-         // The newest product is going to be displayed first
          orderBy: {
             createdAt: 'desc'
          }
     })
    
 }
-// We will provide the productId & we will get it from the searchParams
 export const fetchSingleProduct = async(productId:string) => {
     const product = await prisma.product.findUnique({
-    // We have two options, we have the entire product or it is going to be null
         where: {
             id:productId
         }
@@ -92,54 +66,18 @@ export const fetchSingleProduct = async(productId:string) => {
     }
         return product
 }
-// This is equal to async since we will make a callback to the database
-// We will pass this as a action prop into the form container
-// If the type are not going to match, typescript will complain
-// We setup the object & this is what we are going to be returning regardless of the error
-// We will return an object with a message property
-// This is going to be a promise that is going to resolve to an object with a message property - <{message:string}
+
 export const createProductAction = async (
   prevState: any,
   formData: FormData
 ): Promise<{ message: string }> => {
-  // This is coming from the clerk server
-  // Notice how the user can be either a user type or it can be a null
-  // There is no way for TypeScript to know that this is a protected route
-  // If we add the clerkId below in db.product.create & set it equal to our user, it is not going to work
-  // eg: clerkId:user.id - user potentially can be null. Our model is actually a string
-  // How can we handle that?
-  // There is going to be a helper function
-  // There should definitely be a user & we can access the user.id
-    // const user = await currentUser()
-    // typescript sees that if there is no user, we stop the execution
-  //  if(!user redirect('/'))
-    // We want to get the values out of the form data
-    // We will use the get method & we will provide the name of the input
-    // We are going to communicate with the database
    const user = await requireUser()
     try {
-    // Unlike the previous inputs, we do not want to access it from rawData
       const rawData = Object.fromEntries(formData)
-    // // We do want to access actually image manually.
       const file = formData.get('image') as File
-       // // In order to do that, we need to use as a file
-      // console.log(rawData)
-      // This will throw the error immediately if the values do not match
-      // If we are successful, we will have a toast message created
-      // If not we will have a big error message. 
-      // First, we will need to use the safeParse, since we want to iterate over the array
-      // Remember, in this case the data is actually located in .data property
-      // const validatedFields = productSchema.safeParse(rawData)
-      // With our custom method, we validate with the Zode schema, & provide the product schema 
-      // & the raw data
       const validatedFields = validateWithZodSchema(productSchema, rawData)
-       // We will pass everything correctly in as an object
-      // We will use image, because that is the property
       const validatedFile = validateWithZodSchema(imageSchema, { image: file });
       console.log(validatedFile)
-      // Unlike the previous inputs, we do not want to access it from the rawData
-      // We will pass everything in as an object
-      // We are getting back an object & it is located in the image property
       const fullPath = await uploadImage(validatedFile.image);
          await prisma.product.create({
          data: {
@@ -148,27 +86,17 @@ export const createProductAction = async (
             clerkId: user.id
           }
         })
-       // return {message: 'product created'}
-      // return {message: 'product created'}
     } catch(error) {
     }
-     // If we are successful, We will redirect the admin user to the product page
-    // where we display right away all of the products
-    // If not, then we are going to display the error message in the toast
    redirect('/admin/products')
   }
 
 export const fetchAdminProducts = async () => {
- // We fetch the product by its unique ID.
- // We want to look for all of the products
   await requireAdmin()
-  // We will be using descending
   return prisma.product.findMany({ orderBy: { createdAt: 'desc' } })
 }
 
-// We know that we are going to be passing in the product ID
 export const deleteProductAction = async(prevState:{productId:string}) => {
-  // We destructure this
   const {productId} = prevState
   await requireAdmin()
   try {
@@ -190,23 +118,18 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
     throw new Error("productId is missing");
   }
     await requireAdmin()
-  // We fetch the product by its unique ID.
     const product = await prisma.product.findUnique({
       where:{
-        // We cannot find the product, we will navigate to /admin/products
         id:productId
       }
     })
-      // If its in correct, then we will redirect back to /admin/products
       if(!product) {
        redirect('/admin/products')
-        // throw new Error("Product not found");
       }
       return product
     }
   
     export const updateProductAction = async(prevState:any, formData:FormData) => {
-         // We return an object with a message
         await requireAdmin()
       try {
         const productId = formData.get('id') as string
@@ -228,17 +151,12 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
     }
 
     export const updateProductImageAction = async(prevState:any, formData:FormData) => {
-      // We return an object with a message
       await requireUser()
-     // We are going to start by accessing the image as a file, a product ID, an old image URL
       try {
         const image = formData.get('image') as File
         const productId = formData.get('id') as string
         const oldImageUrl = formData.get('url') as string
         const validatedFile = validateWithZodSchema(imageSchema, {image})
-         // We want to use the full path from the supabase & we need to run our upload image
-        // If we are successful, we want to delete the old image
-        // We will use another helper function from supabase, deleteImage
         const fullPath = await uploadImage(validatedFile.image)
         await deleteImage(oldImageUrl);
         await prisma.product.update({

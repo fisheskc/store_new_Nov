@@ -2,11 +2,24 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 // This is the case where we define our public route
-const isPublicRoute = createRouteMatcher(['/', '/products(.*)', '/about']);
+const isPublicRoute = createRouteMatcher([
+ "/",
+  "/products(.*)",
+  "/about",
+  "/register",
+  "/login",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks(.*)",
+  "/api/auth(.*)"
+
+]);
+
 // This is going to be the admin route 
 // Since we a have a nested structure, we want to use admin & then all of the pages,
 // & inorder  to restrict access to all of the pages, so admin/sales, products, essentially all of them
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
+
 export default clerkMiddleware(async(auth, req) => {
 // export default clerkMiddleware(async(auth, req) => {
     // In order to check that, we will use auth userID, 
@@ -41,5 +54,5 @@ export default clerkMiddleware(async(auth, req) => {
 export const config = {
     // Skip Next.js internals and all static files, unless found in search params
     // Always run for API routes
-     matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+     matcher:["/((?!_next|.*\\..*|favicon.ico|api|trpc).*)"]
 };
