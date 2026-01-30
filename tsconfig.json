@@ -16,8 +16,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@cloudflare/workers-types"],
-    "jsx": "react-jsx",
+    "types": [
+      "@cloudflare/workers-types"
+    ],
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -26,11 +28,21 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@components/*": ["components/*"],
-      "@app/*": ["app/*"],
-      "@utils/*": ["utils/*"],
-      "@styles/*": ["styles/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@components/*": [
+        "components/*"
+      ],
+      "@app/*": [
+        "app/*"
+      ],
+      "@utils/*": [
+        "utils/*"
+      ],
+      "@styles/*": [
+        "styles/*"
+      ]
     }
   },
   "include": [
@@ -39,10 +51,10 @@
     "**/*.tsx",
     "types/global.d.ts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-, "prisma/seed.ts" ],
+    ".next/dev/types/**/*.ts",
+    "prisma/seed.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
 }
-
