@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 // This is the case where we define our public route
 const isPublicRoute = createRouteMatcher([
- "/",
+"/",
   "/products(.*)",
   "/about",
   "/register",
@@ -12,7 +12,6 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/api/webhooks(.*)",
   "/api/auth(.*)"
-
 ]);
 
 // This is going to be the admin route 
@@ -21,12 +20,19 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware(async(auth, req) => {
-// export default clerkMiddleware(async(auth, req) => {
     // In order to check that, we will use auth userID, 
     // if this true, it means user is admin user
     // If not, means user is regular user & user is not an admin user
     // console.log(auth().userId)
- 
+    // ⭐ FIRST: protect non-public routes
+    // These are going to be public routes
+    // We will actually look for the routes that are not in our createRouteMatcher
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+
+    // ⭐ SECOND: redirect non-admin users trying to access admin routes// 
+    // ⭐ NOW it is safe to call auth()
     const { userId } = await auth();
     console.log(" This is userId")
     console.log(userId)
@@ -42,17 +48,10 @@ export default clerkMiddleware(async(auth, req) => {
         return NextResponse.redirect(new URL('/', req.url)) 
     }
 
-
-    // These are going to be public routes
-    // We will actually look for the routes that are not in our createRouteMatcher
-     if (!isPublicRoute(req)) {
-        auth.protect()// Protect the route if it matches the defined criteria
-    }
-    
 });
 
 export const config = {
     // Skip Next.js internals and all static files, unless found in search params
     // Always run for API routes
-     matcher:["/((?!_next|.*\\..*|favicon.ico|api|trpc).*)"]
-};
+     matcher: [ "/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)",]
+}

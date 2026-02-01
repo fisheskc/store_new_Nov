@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '../../app/generated/prisma/client';
 import Image from 'next/image';
-// import FavoriteToggleButton from './FavoriteToggleButton';
+import FavoriteToggleButton from './FavoriteToggleButton';
 
 // The props will be products & that is equal to products & the type is going to be equal to product
 // & it is going to be an array
@@ -47,7 +47,7 @@ function ProductsList({products}:{products:Product[]}) {
             </Card>
           </Link>
           <div className='absolute bottom-8 right-8 z-5'>
-            {/* <FavoriteToggleButton productId={productId} /> */}
+            <FavoriteToggleButton productId={productId} favoriteId="" />
           </div>
         </article>
         )

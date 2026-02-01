@@ -1,7 +1,7 @@
 'use server';
-import { PrismaClient, Prisma } from "../app/generated/prisma/client";
+
 import prisma from '@/utils/db';
-import { currentUser, auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
   imageSchema,
@@ -12,16 +12,16 @@ import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
 // import { Favorite } from "../app/generated/prisma/client";
 
-const getOptionalUser = async () => {
-  return await currentUser()
-}
+// const getOptionalUser = async () => {
+//   return await currentUser()
+// }
 
 const requireUser = async () => {
-  const user = await currentUser()
+  const { userId } = await auth();
     // If there is no user, we are going to redirect back to the home page
-  if (!user) redirect('/login')
+  if (!userId) redirect('/login')
       // If everything is correct, we are going to return the user
-  return user
+  return { id: userId };
 }
 
 const requireAdmin = async () => {
@@ -256,47 +256,45 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
       }
     }
     
-    export const toggleFavoriteAction = async (prevState:{
-      productId:string,
-      favoriteId:string | null,
-       pathname:string}) => {
-        const user = await requireUser()
-        const {productId, favoriteId, pathname} = prevState
-        try {
-          if(favoriteId) {
-            await prisma.favorite.delete({
-              where: {
-                id: favoriteId
-              },
-            })
-          } else {
-            await prisma.favorite.create({
-              data: {
-                productId,
-                clerkId: user.id
-              }
-            })
-          }
-          revalidatePath(pathname)
-          
-          return {message:favoriteId? 'removed from faves' : 'added to faves'}
-        }  catch(error) {
-          return renderError(error) 
-        }
+    export async function toggleFavoriteAction({productId, favoriteId, pathname}:{ productId: string; favoriteId: string | null; pathname: string })  {
+   
+        const { userId } = await auth();
+        if (!userId) return { message: "Not authenticated" };
+
+        if (favoriteId) {
+          await prisma.favorite.delete({
+            where: { id: favoriteId }
+        });
+        } else {
+          await prisma.favorite.create({
+            data: {
+              productId,
+              clerkId: userId
+        } 
+        });
+      }
+      return { message: "ok" };
     }
 
-    export const fetchFavoriteId = async ({ productId }: { productId: string }) => {
-          const user = await requireUser()
+
+    export async function fetchFavoriteId({ productId }: { productId: string }) {
+          const { userId } = await auth();
+
+          // ⭐ Prevent Prisma from ever receiving null
+          if (!userId) {
+            return null;
+          }
+
        const favorite = await prisma.favorite.findFirst({
           where: {
           productId,
-          clerkId: user.id,
+          clerkId: userId,
      },
           select:{
              id: true,
     },
   });
-  return favorite?.id || null;
+  return favorite?.id ?? null;
 };   
 
 export const fetchUserFavorites = async () => {

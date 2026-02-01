@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,17 +12,19 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { links } from '@/utils/links';
 import UserIcon from './UserIcon';
-import { SignInButton, SignedIn, SignedOut, SignUpButton } from '@clerk/nextjs';
+import { SignInButton, SignedIn, SignedOut, SignUpButton, useUser } from '@clerk/nextjs';
 import SignOutLink from './SignOutLink';
-import { auth } from '@clerk/nextjs/server';
+import { auth } from "@clerk/nextjs/server";
+
+
 // import { userId } from "next-auth/react"
 
-// function LinksDropdown() {
-async function LinksDropdown() {
-const { userId } = await auth();
-  // const { userId } = auth();
+function LinksDropdown() {
+  const { user } = useUser();
+
+//  const { userId } = auth();
   // If the user is admin, we want to display the dashboard link. If not then we will not do that.
- const isAdmin = userId === process.env.ADMIN_USER_ID;
+ const isAdmin = user?.id === process.env.ADMIN_USER_ID;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

@@ -1,6 +1,6 @@
 'use client';
 
-// We do want to use this Pathname hook, because we want to invoke this in multiplEe places
+// We do want to use this Pathname hook, because we want to invoke this in multiple places
 // We will revalidate the path, as we need to know which page we are currently at. 
 import { usePathname } from 'next/navigation';
 import FormContainer from '../form/FormContainer';
@@ -25,7 +25,7 @@ function FavoriteToggleForm({productId, favoriteId}:FavoriteToggleFormProps) {
   // We are looking for this prop, isFavorite & based on the value, we will either provide true or false
   return (
     <FormContainer action={toggleAction}>
-      <CardSubmitButton isFavorite={favoriteId? true:false} />
+      <CardSubmitButton isFavorite={!!favoriteId} />
     </FormContainer>
   )
 }

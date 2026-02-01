@@ -1,6 +1,8 @@
+"use client";
+
 // changed LuUser2 to LuUser
 import { LuUser } from 'react-icons/lu';
-import { currentUser } from '@clerk/nextjs/server'
+import { useUser } from '@clerk/nextjs'
 
 // This function is going to return all of the info on the currentUser
 // If the user has not logged in, remember we display that navbar in the public pages as well,
@@ -8,8 +10,7 @@ import { currentUser } from '@clerk/nextjs/server'
 // currentUser is either it is going to be a user type, or it is going to be null,
 // it is displaced in all public pages 
 // async function UserIcon() {
-async function UserIcon() {
-
+function UserIcon() {
 
   // const {userId} = auth()
 
@@ -17,7 +18,7 @@ async function UserIcon() {
   // we have some kind of functionality where we want to fetch something only based on the userID, we can use our auth function,
   // invoke it, & we will use the userId.
   
-const user = await currentUser()
+  const { user } = useUser();
   // We need to use the optional training, because potientially this user might be null,
   // & we do not want to throw the error
 const profileImage = user?.imageUrl
@@ -31,14 +32,12 @@ const profileImage = user?.imageUrl
 
    if(profileImage) {
        return (
-         <img src={profileImage} className='w-6 h-6 rounded-full object-cover' />
+         <img src={profileImage} className='w-6 h-6 rounded-full object-cover' alt="User profile" />
      )
-
    }
 
   // If the user has not logged in, we return our icon 
-  return <LuUser className = 'w-6 h6 bg-primary rounded-full text-white' />
-
+  return <LuUser className = 'w-6 h-6 bg-primary rounded-full text-white' />
 }
 
 export default UserIcon

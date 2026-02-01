@@ -4,25 +4,29 @@ import Link from 'next/link';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
 import FavoriteToggleButton from './FavoriteToggleButton';
+import { fetchFavoriteId } from "@/utils/actions";
+
 
 
 function ProductsGrid({products}:{products:Product[]}) {
+  
   // We will iterate over
   return (
     <div className='pt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
      {
-       products.map((product) => {
+       products.map(async(product) => {
         const { name, price, image } = product
         const productId = product.id 
         // it is coming from our utils & we want to pass in the price
         const dollarsAmount = formatCurrency(price)
+        const favoriteId = await fetchFavoriteId({ productId: product.id });
         // Each card will be a link
         // The link will be dynamic
         // We place the the image in CardContent
         // Image fill, as we want the image to be responsive
         return (
-        <article key={productId} className='group relative'>
-            <Link href={`/products/${productId}`}>
+        <article key={product.id} className='group relative'>
+            <Link href={`/products/${product.id}`}>
               <Card className="transform group-hover:shadow-xl transition-shadow duration-500">
                <CardContent className='p-4'>
                     <div className='relative h-64 md:h-48 rounded overflow-hidden '>
@@ -45,7 +49,7 @@ function ProductsGrid({products}:{products:Product[]}) {
               </Card>
             </Link>
             <div className='absolute top-7 right-7 z-5'>
-            <FavoriteToggleButton productId={productId} />
+            <FavoriteToggleButton productId={product.id} favoriteId={favoriteId} />
             </div>
           </article>
         );
