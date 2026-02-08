@@ -4,6 +4,8 @@
 // This tells Next.js: “Do NOT try to pre-render this page at build time. Render it on every request.”
 
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 
 import SectionTitle from '@/components/global/SectionTitle';
 import ProductsGrid from '@/components/products/ProductsGrid';
