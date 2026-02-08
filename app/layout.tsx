@@ -12,6 +12,16 @@ export const metadata: Metadata = {
   description: 'A nifty store built with Next.js',
 };
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
+const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+if (!publishableKey) {
+  throw new Error("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
+}
+
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -19,7 +29,7 @@ export default function RootLayout({
  }> ) {
 return (
   // <ClerkProvider dynamic>
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={publishableKey}>
     <html lang='en' suppressHydrationWarning>
         <body className={inter.className}>
           <Providers>
