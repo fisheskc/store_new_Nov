@@ -1,4 +1,6 @@
 // /** @type {import('next').NextConfig} */
+/** @type {import('next').NextConfig} */
+
 import  { NextConfig } from 'next'
 // import type { NextConfig } from 'next';
 import { Configuration } from 'webpack';
