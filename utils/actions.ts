@@ -1,7 +1,7 @@
 'use server';
 
 import "dotenv/config";
-import { prisma } from "@/utils/db";
+import { prisma } from './db';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
@@ -300,13 +300,12 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 
 export const fetchUserFavorites = async () => {
   const user = await requireUser()
-  const favorites = await prisma.favorite.findMany({
+  return prisma.favorite.findMany({
     where: {
-      clerkId: user.id
+      clerkId: user.id,
     },
     include: {
-      product:true,
-    }
-})
-  return favorites
+      product: true,
+    },
+  });
 }
