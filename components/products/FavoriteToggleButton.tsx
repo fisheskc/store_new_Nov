@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import { usePathname } from "next/navigation";
 // import { CardSignInButton } from '../form/Buttons';
 import { toggleFavoriteAction } from '@/utils/actions';
-// import { fetchFavoriteId} from '@/utils/actions';
+import { fetchFavoriteId} from '@/utils/actions';
 import FavoriteToggleForm from './FavoriteToggleForm';
 
 // The type will be equal to string
