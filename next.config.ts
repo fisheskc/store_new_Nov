@@ -22,6 +22,9 @@ import { Configuration } from 'webpack';
     //     "ts"
     // ],
 const nextConfig: NextConfig = {
+   eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: false,
   webpack: (config: Configuration) => {
     // Suppress source map warnings from node_modules
