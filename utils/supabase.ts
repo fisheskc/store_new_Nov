@@ -7,17 +7,19 @@ const bucket = 'main-bucket'
 // to add the type assertion that will always pass in the string.
 
 // Create a single supabase client for interacting with your database
-export const supabase = createClient(
+function getSupabase() {
+  return createClient(
   // process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   // process.env.NEXT_PUBLIC_SUPABASE_KEY as string
   process.env.SUPABASE_URL as string,
   process.env.SUPABASE_KEY as string
 );
 console.log('Supabase URL present:', !!process.env.SUPABASE_URL);
-
+}
 
 // We are getting back that file in the validate file object
 export const uploadImage = async(image:File) => {
+  const supabase = getSupabase();
    // We want to use the timestamp, because we are going to use it in order to setup the name,
    const timestamp = Date.now()
    // Remember, in the fiie, we have a few properties & we use image.name
@@ -37,6 +39,7 @@ export const uploadImage = async(image:File) => {
 }
 
 export const deleteImage = async(url: string) => {
+  const supabase = getSupabase();
   const imageName = url.split('/').pop();
   if (!imageName) throw new Error('Invalid URL');
   return supabase.storage.from(bucket).remove([imageName]);
