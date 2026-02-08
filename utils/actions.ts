@@ -1,6 +1,7 @@
 'use server';
 
-import prisma from '@/utils/db';
+import "dotenv/config";
+import { prisma } from "@/utils/db";
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
@@ -10,7 +11,7 @@ import {
 } from './schemas';
 import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
-// import { Favorite } from "../app/generated/prisma/client";
+
 
 // const getOptionalUser = async () => {
 //   return await currentUser()

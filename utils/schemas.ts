@@ -76,7 +76,7 @@ export function validateWithZodSchema<T>(
   data: unknown
 ): T {
     const result = schema.safeParse(data);
-     // If this is equal to false, then we wamt to iterate over the array & get those messgaes
+     // If this is equal to false, then we want to iterate over the array & get those messgaes
       if(!result.success) {
         // We are going to reference as an error & we will pull out the message property
         const errors = result.error.issues.map((issue) => issue.message);

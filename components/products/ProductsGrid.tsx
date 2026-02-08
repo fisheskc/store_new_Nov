@@ -1,5 +1,5 @@
 import { formatCurrency } from '@/utils/format';
-import { Product } from '../../app/generated/prisma/client';;
+import type { Product } from "@prisma/client";
 import Link from 'next/link';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';

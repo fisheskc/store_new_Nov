@@ -6,13 +6,14 @@ import  { Suspense } from 'react'
 // fallback will be our loading container
 function HomePage() {
   return (
+    
     <>
-   
      <Hero />
-     <Suspense fallback = {<LoadingContainer />}>
+      
+    <Suspense fallback = {<LoadingContainer />}>
         <FeaturedProducts />
      </Suspense>
-    </>
+    </> 
   )
 }
 
