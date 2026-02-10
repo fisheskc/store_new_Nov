@@ -11,7 +11,7 @@ import SectionTitle from '@/components/global/SectionTitle';
 import ProductsGrid from '@/components/products/ProductsGrid';
 import {  fetchUserFavorites } from '@/utils/actions';
 
-
+import type { Product } from "@prisma/client";
 
 
 async function FavoritesPage() {
@@ -24,7 +24,8 @@ async function FavoritesPage() {
     return (
     <div>
       <SectionTitle text='Favourites' />
-      <ProductsGrid products={favorites.map((favorite) =>  favorite.product )} /> 
+      {/* <ProductsGrid products={favorites.map((favorite: Product) => {console.log(favorite); return favorite.product} )} />  */}
+      <ProductsGrid products={favorites.map((favorite) => favorite.product )} /> 
     </div>
   )
 }

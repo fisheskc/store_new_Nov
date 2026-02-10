@@ -1,8 +1,9 @@
 'use server';
 
 import "dotenv/config";
-import { prisma } from './db';
-import { auth } from '@clerk/nextjs/server';
+import { prisma } from "@/utils/db";
+import { currentUser, auth } from '@clerk/nextjs/server';
+// import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
   imageSchema,
@@ -12,32 +13,38 @@ import {
 import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
 
+const getAuthUser = async () => {
+  const user = await currentUser();
+  if (!user) redirect('/');
+  return user;
+};
 
 // const getOptionalUser = async () => {
 //   return await currentUser()
 // }
+// const requireUser = async () => {
 
-const requireUser = async () => {
-  const { userId } = await auth();
+const getAdminUser = async () => {
+  const user = await getAuthUser();
     // If there is no user, we are going to redirect back to the home page
-  if (!userId) redirect('/login')
-      // If everything is correct, we are going to return the user
-  return { id: userId };
-}
-
-const requireAdmin = async () => {
-  const user = await requireUser()
-   // We are going to check for admin user
-  // If the ID does not match, then essentially, we are going to redirect to the homepage
-  // We only want the admin user to have access to the data
-  // If a user gets access to the page, they will not be able to see any data
-  // You can force your way to the admin product, but you are not going to see any data
-  // because your ID does not match the admin one. You will just be directed to the homepage
   if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
-  // If everything is correct we return a user
-  // In some cases we are going to use the user value
+      // If everything is correct, we are going to return the user
   return user
 }
+
+// const requireAdmin = async () => {
+//   const user = await getAdminUser()
+//    // We are going to check for admin user
+//   // If the ID does not match, then essentially, we are going to redirect to the homepage
+//   // We only want the admin user to have access to the data
+//   // If a user gets access to the page, they will not be able to see any data
+//   // You can force your way to the admin product, but you are not going to see any data
+//   // because your ID does not match the admin one. You will just be directed to the homepage
+//   if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
+//   // If everything is correct we return a user
+//   // In some cases we are going to use the user value
+//   return user
+// }
 
 const renderError = (error:unknown): {message:string} => {
 // We access the error class, if that is the case, we use error.message
@@ -47,10 +54,12 @@ const renderError = (error:unknown): {message:string} => {
 
 export const fetchFeaturedProducts = async () => {
 // We get the products where the featured flag is set to true
-  return prisma.product.findMany({
-    where: { featured: true },
-    orderBy: { createdAt: 'desc' }
-  })
+  const products = await prisma.product.findMany({
+    where: {
+      featured: true,
+    },
+  });
+  return products;
 }
 
 // We set up a function to fetch all of the prodcut
@@ -62,10 +71,6 @@ export const fetchAllProducts = async({ search = '' }: { search: string }) => {
     // We want to return the DB
     return prisma.product.findMany({
         where:{
-            // We need to use the syntax of OR, since we want to search into places in the company property
-        //  as well as the name. We set it equal to an array. We set up two objects, one for each property
-        // name is going to be equal to contains, which is a special keyword
-        // We provide the search
         // Make sure the mode is set to equal to insensitive
           OR: [
         { name: { contains: search, mode: 'insensitive' } },
@@ -117,7 +122,7 @@ export const createProductAction = async (
     // We want to get the values out of the form data
     // We will use the get method & we will provide the name of the input
     // We are going to communicate with the database
-   const user = await requireUser()
+   const user = await getAuthUser();
     try {
     // Unlike the previous inputs, we do not want to access it from rawData
       const rawData = Object.fromEntries(formData)
@@ -152,6 +157,7 @@ export const createProductAction = async (
        // return {message: 'product created'}
       // return {message: 'product created'}
     } catch(error) {
+      return renderError(error);
     }
      // If we are successful, We will redirect the admin user to the product page
     // where we display right away all of the products
@@ -162,16 +168,20 @@ export const createProductAction = async (
 export const fetchAdminProducts = async () => {
  // We fetch the product by its unique ID.
  // We want to look for all of the products
-  await requireAdmin()
-  // We will be using descending
-  return prisma.product.findMany({ orderBy: { createdAt: 'desc' } })
+ await getAdminUser();
+   const products = await prisma.product.findMany({
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  return products;
 }
 
 // We know that we are going to be passing in the product ID
 export const deleteProductAction = async(prevState:{productId:string}) => {
   // We destructure this
   const {productId} = prevState
-  await requireAdmin()
+  await getAdminUser();
   try {
    const product =  await prisma.product.delete({
       where: {
@@ -187,28 +197,22 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
   }
 
   export const fetchAdminProductDetails = async(productId:string) =>{
-    if (!productId) {
-    throw new Error("productId is missing");
-  }
-    await requireAdmin()
-  // We fetch the product by its unique ID.
+    await getAdminUser();
+    // We fetch the product by its unique ID.
     const product = await prisma.product.findUnique({
-      where:{
-        // We cannot find the product, we will navigate to /admin/products
+       where: {
+      // We cannot find the product, we will navigate to /admin/products
         id:productId
-      }
-    })
-      // If its in correct, then we will redirect back to /admin/products
-      if(!product) {
-       redirect('/admin/products')
-        // throw new Error("Product not found");
-      }
-      return product
-    }
-  
+    },
+  });
+   // If its in correct, then we will redirect back to /admin/products
+      if (!product) redirect('/admin/products');
+    return product;
+  }
+   
     export const updateProductAction = async(prevState:any, formData:FormData) => {
          // We return an object with a message
-        await requireAdmin()
+        await getAdminUser();
       try {
         const productId = formData.get('id') as string
         const rawData = Object.fromEntries(formData)
@@ -230,7 +234,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 
     export const updateProductImageAction = async(prevState:any, formData:FormData) => {
       // We return an object with a message
-      await requireUser()
+      await getAuthUser();
      // We are going to start by accessing the image as a file, a product ID, an old image URL
       try {
         const image = formData.get('image') as File
@@ -256,40 +260,19 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
         return renderError(error)
       }
     }
-    
-    export async function toggleFavoriteAction({productId, favoriteId, pathname}:{ productId: string; favoriteId: string | null; pathname: string })  {
-   
-        const { userId } = await auth();
-        if (!userId) return { message: "Not authenticated" };
-
-        if (favoriteId) {
-          await prisma.favorite.delete({
-            where: { id: favoriteId }
-        });
-        } else {
-          await prisma.favorite.create({
-            data: {
-              productId,
-              clerkId: userId
-        } 
-        });
-      }
-      return { message: "ok" };
-    }
-
 
     export async function fetchFavoriteId({ productId }: { productId: string }) {
-          const { userId } = await auth();
+          const user = await getAuthUser();
 
           // ⭐ Prevent Prisma from ever receiving null
-          if (!userId) {
-            return null;
-          }
+          // if (!userId) {
+          //   return null;
+          // }
 
        const favorite = await prisma.favorite.findFirst({
           where: {
           productId,
-          clerkId: userId,
+          clerkId: user.id,
      },
           select:{
              id: true,
@@ -298,9 +281,38 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
   return favorite?.id ?? null;
 };   
 
+ export const toggleFavoriteAction = async(prevState: {
+    productId: string;
+    favoriteId: string | null;
+    pathname: string;
+  })  => {
+      const user = await getAuthUser();
+      const { productId, favoriteId, pathname } = prevState;
+        // const { userId } = await auth();
+    
+    try {
+        if (favoriteId) {
+          await prisma.favorite.delete({
+            where: { id: favoriteId }
+        });
+        } else {
+          await prisma.favorite.create({
+            data: {
+              productId,
+              clerkId: user.id
+        } 
+        });
+      }
+        revalidatePath(pathname);
+        return { message: favoriteId ? 'removed from faves' : 'added to faves' };
+      } catch (error) {
+        return renderError(error);
+    }
+};
+
 export const fetchUserFavorites = async () => {
-  const user = await requireUser()
-  return prisma.favorite.findMany({
+  const user = await getAuthUser();
+  const favorites = await prisma.favorite.findMany({
     where: {
       clerkId: user.id,
     },
@@ -308,4 +320,5 @@ export const fetchUserFavorites = async () => {
       product: true,
     },
   });
+  return favorites;
 }

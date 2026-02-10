@@ -90,7 +90,7 @@ export const CardSignInButton = () => {
   // We just want to render the sign in button from Clerk
   return (
     <SignInButton mode='modal'>
-    <Button type='button' size='icon' variant='outline' className='p-2 cursor-point' asChild>
+    <Button type='button'size='icon' variant='outline' className='p-2 cursor-point' asChild>
       <FaRegHeart />
     </Button>
   </SignInButton>
