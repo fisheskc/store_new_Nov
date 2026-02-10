@@ -4,12 +4,16 @@
 // import { usePathname } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { CardSignInButton } from '../form/Buttons';
-// import { toggleFavoriteAction } from '@/utils/actions';
 import { fetchFavoriteId} from '@/utils/actions';
 import FavoriteToggleForm from './FavoriteToggleForm';
 
+
+interface Props {
+  productId: string;
+}
+
 // The type will be equal to string
-async function FavoriteToggleButton({productId}: { productId: string, favoriteId: string | null }) {
+async function FavoriteToggleButton({productId}: Props) {
   // const pathname = usePathname();
   const {userId} = await auth()
   // const [isPending, startTransition] = useTransition();
