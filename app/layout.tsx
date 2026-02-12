@@ -18,9 +18,9 @@ export const fetchCache = 'force-no-store';
 
 // const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-if (!publishableKey) {
-  throw new Error("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
-}
+// if (!publishableKey) {
+//   throw new Error("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY");
+// }
 
 
 export default function RootLayout({
