@@ -20,6 +20,10 @@ const isPublicRoute = createRouteMatcher([
 const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware(async(auth, req) => {
+    // Get the session once — do NOT call auth() twice
+  const session = await auth();
+  const userId = session.userId;
+
     // In order to check that, we will use auth userID, 
     // if this true, it means user is admin user
     // If not, means user is regular user & user is not an admin user
@@ -28,19 +32,25 @@ export default clerkMiddleware(async(auth, req) => {
     // These are going to be public routes
     // We will actually look for the routes that are not in our createRouteMatcher
   if (!isPublicRoute(req)) {
-    await auth.protect();
+    if (!userId) return session.redirectToSignIn();
+
   }
 
     // ⭐ SECOND: redirect non-admin users trying to access admin routes// 
     // ⭐ NOW it is safe to call auth()
-    const { userId } = await auth();
-    console.log(" This is userId")
-    console.log(userId)
-   
+  
+    // console.log(" This is userId")
+    // console.log(userId)
+     // Admin check
     const adminId = process.env.ADMIN_USER_ID ?? "";
     const isAdminUser = userId === adminId;
-     console.log(" This is isAdminUser")
-    console.log(isAdminUser)
+
+    if (!process.env.ADMIN_USER_ID) {
+      throw new Error("ADMIN_USER_ID is missing");
+    }
+
+    //  console.log(" This is isAdminUser")
+    // console.log(isAdminUser)
     // If the user is trying to access the admin route. In that case, we redirect the user back
     if(isAdminRoute(req) && !isAdminUser) {
         // We want to return a Next response & we need to make sure it is coming from the server
