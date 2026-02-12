@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
-import async from './components/products/favorite';
 
 // This is the case where we define our public route
 const isPublicRoute = createRouteMatcher([
