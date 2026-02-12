@@ -37,7 +37,8 @@ export default clerkMiddleware(async(auth, req) => {
     console.log(" This is userId")
     console.log(userId)
    
-    const isAdminUser = userId === process.env.ADMIN_USER_ID
+    const adminId = process.env.ADMIN_USER_ID ?? "";
+    const isAdminUser = userId === adminId;
      console.log(" This is isAdminUser")
     console.log(isAdminUser)
     // If the user is trying to access the admin route. In that case, we redirect the user back
