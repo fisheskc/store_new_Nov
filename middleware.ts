@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import async from './components/products/favorite';
 
 // This is the case where we define our public route
 const isPublicRoute = createRouteMatcher([
@@ -21,8 +22,7 @@ const isAdminRoute = createRouteMatcher(['/admin(.*)']);
 
 export default clerkMiddleware(async(auth, req) => {
     // Get the session once — do NOT call auth() twice
-  const session = await auth();
-  const userId = session.userId;
+  const { userId, redirectToSignIn } = await auth();
 
     // In order to check that, we will use auth userID, 
     // if this true, it means user is admin user
@@ -33,7 +33,7 @@ export default clerkMiddleware(async(auth, req) => {
     // We will actually look for the routes that are not in our createRouteMatcher
   if (!isPublicRoute(req)) {
     if (!userId) {
-      return session.redirectToSignIn();
+      return redirectToSignIn();
     }
 
   }
@@ -60,6 +60,7 @@ export default clerkMiddleware(async(auth, req) => {
         // If everything is correct & we are not an admin user, we will not have access to the admin pages
         return NextResponse.redirect(new URL('/', req.url)) 
     }
+    return NextResponse.next();
 
 });
 
