@@ -32,7 +32,9 @@ export default clerkMiddleware(async(auth, req) => {
     // These are going to be public routes
     // We will actually look for the routes that are not in our createRouteMatcher
   if (!isPublicRoute(req)) {
-    if (!userId) return session.redirectToSignIn();
+    if (!userId) {
+      return session.redirectToSignIn();
+    }
 
   }
 
