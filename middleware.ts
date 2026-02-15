@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clear } from 'console';
 import { NextResponse } from 'next/server';
 
 // This is the case where we define our public route
@@ -45,10 +46,6 @@ export default clerkMiddleware(async(auth, req) => {
     const adminId = process.env.ADMIN_USER_ID ?? "";
     const isAdminUser = userId === adminId;
 
-    if (!adminId) {
-      throw new Error("ADMIN_USER_ID is missing");
-    }
-
     //  console.log(" This is isAdminUser")
     // console.log(isAdminUser)
     // If the user is trying to access the admin route. In that case, we redirect the user back
@@ -65,5 +62,5 @@ export default clerkMiddleware(async(auth, req) => {
 export const config = {
     // Skip Next.js internals and all static files, unless found in search params
     // Always run for API routes
-     matcher: [ "/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)",]
+     matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
 }

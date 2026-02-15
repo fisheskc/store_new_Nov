@@ -1,6 +1,7 @@
+import { redirect } from 'next/navigation';
 import EmptyList from '@/components/global/EmptyList';
 // import { fetchAdminProducts } from '@/utils/actions'
-import { fetchAdminProducts, deleteProductAction } from '@/utils/actions';
+import { fetchAdminProducts, deleteProductAction, getAdminUser } from '@/utils/actions';
 import Link from 'next/link';
 import { formatCurrency } from '@/utils/format';
 import {
@@ -17,6 +18,9 @@ import FormContainer from '@/components/form/FormContainer';
 
 
 async function AdminProductsPage() {
+  const admin = await getAdminUser();
+   if (!admin) redirect('/');
+
   // We reference products as items
   const items = await fetchAdminProducts()
   if(items.length === 0) return <EmptyList />

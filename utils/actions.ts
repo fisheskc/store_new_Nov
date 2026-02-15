@@ -15,19 +15,29 @@ import { revalidatePath } from 'next/cache';
 
 const getAuthUser = async () => {
   const user = await currentUser();
-  if (!user) redirect('/');
+  //  if (!user) return null;
+  //  if (user.id !== process.env.ADMIN_USER_ID) return null;
+  return user;
+
+};
+
+export const requireAuthUser = async () => {
+  const user = await currentUser();
+  if (!user) throw new Error("Unauthorized");
   return user;
 };
+
 
 // const getOptionalUser = async () => {
 //   return await currentUser()
 // }
 // const requireUser = async () => {
 
-const getAdminUser = async () => {
+export const getAdminUser = async () => {
   const user = await getAuthUser();
     // If there is no user, we are going to redirect back to the home page
-  if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
+    if (!user) return null;
+    if (user.id !== process.env.ADMIN_USER_ID) return null;
       // If everything is correct, we are going to return the user
   return user
 }
@@ -123,6 +133,8 @@ export const createProductAction = async (
     // We will use the get method & we will provide the name of the input
     // We are going to communicate with the database
    const user = await getAuthUser();
+   if (!user) throw new Error("Unauthorized");
+
     try {
     // Unlike the previous inputs, we do not want to access it from rawData
       const rawData = Object.fromEntries(formData)
@@ -263,13 +275,13 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 
     export async function fetchFavoriteId({ productId }: { productId: string }) {
           const user = await getAuthUser();
-
+          if (!user) return null; // logged-out users simply have no favorites
           // ⭐ Prevent Prisma from ever receiving null
           // if (!userId) {
           //   return null;
           // }
 
-       const favorite = await prisma.favorite.findFirst({
+       const favorite = await prisma.favorite.findFirst({  
           where: {
           productId,
           clerkId: user.id,
@@ -282,11 +294,12 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 };   
 
  export const toggleFavoriteAction = async(prevState: {
-    productId: string;
+     productId: string;
     favoriteId: string | null;
     pathname: string;
   })  => {
-      const user = await getAuthUser();
+      const user = await requireAuthUser();
+      if (!user) throw new Error("Unauthorized");
       const { productId, favoriteId, pathname } = prevState;
         // const { userId } = await auth();
     
@@ -312,6 +325,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 
 export const fetchUserFavorites = async () => {
   const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
   const favorites = await prisma.favorite.findMany({
     where: {
       clerkId: user.id,

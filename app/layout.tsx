@@ -13,9 +13,6 @@ export const metadata: Metadata = {
   description: 'A nifty store built with Next.js',
 };
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
-
 // const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 // if (!publishableKey) {
@@ -28,7 +25,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode; 
  }> ) {
-  console.log("CLERK KEY:", process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  
 return (
   // <ClerkProvider dynamic>
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
