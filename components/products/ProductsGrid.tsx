@@ -3,8 +3,8 @@ import type { Product } from "@prisma/client";
 import Link from 'next/link';
 import { Card, CardContent } from '../ui/card';
 import Image from 'next/image';
-import FavoriteToggleButton from './FavoriteToggleButton';
-import { fetchFavoriteId } from "@/utils/actions";
+// import FavoriteToggleButton from './FavoriteToggleButton';
+// import { fetchFavoriteId } from "@/utils/actions";
 
 
 
@@ -19,7 +19,7 @@ function ProductsGrid({products}:{products:Product[]}) {
         const productId = product.id 
         // it is coming from our utils & we want to pass in the price
         const dollarsAmount = formatCurrency(price)
-        const favoriteId = await fetchFavoriteId({ productId: product.id });
+        // const favoriteId = await fetchFavoriteId({ productId: product.id });
         // Each card will be a link
         // The link will be dynamic
         // We place the the image in CardContent
@@ -49,7 +49,7 @@ function ProductsGrid({products}:{products:Product[]}) {
               </Card>
             </Link>
             <div className='absolute top-7 right-7 z-5'>
-            <FavoriteToggleButton productId={product.id} />
+            {/* <FavoriteToggleButton productId={product.id} /> */}
             </div>
           </article>
         );

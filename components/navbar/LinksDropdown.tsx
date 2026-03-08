@@ -10,21 +10,20 @@ import {
 import { LuAlignLeft } from 'react-icons/lu';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { links } from '@/utils/links';
+import { links, adminLinks } from '@/utils/links';
 import UserIcon from './UserIcon';
 import { SignInButton, SignedIn, SignedOut, SignUpButton, useUser } from '@clerk/nextjs';
 import SignOutLink from './SignOutLink';
-import { auth } from "@clerk/nextjs/server";
 
-
-// import { userId } from "next-auth/react"
 
 function LinksDropdown() {
   const { user } = useUser();
 
-//  const { userId } = auth();
+  // const { userId } = auth();
   // If the user is admin, we want to display the dashboard link. If not then we will not do that.
- const isAdmin = user?.id === process.env.ADMIN_USER_ID;
+  // const isAdmin = user?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+  const isAdmin = user?.publicMetadata?.role === 'admin';
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -51,14 +50,25 @@ function LinksDropdown() {
           {links.map((link) => {
             if (link.label === 'dashboard' && !isAdmin) return null;
             return (
-              <DropdownMenuItem key={link.href}>
+              <DropdownMenuItem key={link.href} asChild>
                 <Link href={link.href} className='capitalize w-full'>
                   {link.label}
                 </Link>
               </DropdownMenuItem>
             );
           })}
-          <DropdownMenuSeparator />
+            {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin/sales" className="capitalize w-full">
+                dashboard
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
+         <DropdownMenuSeparator />
           <DropdownMenuItem>
             <SignOutLink />
           </DropdownMenuItem>

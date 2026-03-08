@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 
+// const bucket = 'main-bucket'
 const bucket = 'main-bucket'
 
 // We create the instance
@@ -26,15 +27,26 @@ export const uploadImage = async(image:File) => {
    // If it passes the validation, it is definitely going to be there
    // We upload to a correct bucket
    const newName = `${timestamp}-${image.name}`
+  //  const arrayBuffer = await image.arrayBuffer();
+  //  const buffer = Buffer.from(arrayBuffer);
+
    // This does not return that public URL
    // Once we upload, we also want to get the public URL, since we want to store the strng in the Prisma instance
-   const {data} = await supabase.storage.from(bucket).upload(newName, image, {cacheControl:'3600'})
+  //  const {data, error} = await supabase.storage.from(bucket).upload(newName, buffer, {
+   const {data, error} = await supabase.storage.from(bucket).upload(newName, image, { cacheControl: '3600' });  
+    // contentType:image.type, 
+    //  upsert: true   
+     //  {cacheControl:'3600'})
+  //  })
+    
    // We first need to check whether there is no data
    // If that is the case, we will throw the new Error
    // If we pass the condition, it means that we successfully uploaded the image
-   if(!data) {
-        throw new Error('Image upload failed')
-   }
+   if (error || !data) {
+    console.error(error);
+    throw new Error('Image upload failed');
+  }
+
    return supabase.storage.from(bucket).getPublicUrl(newName).data.publicUrl
 }
 

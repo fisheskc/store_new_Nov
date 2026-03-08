@@ -2,8 +2,7 @@
 
 import "dotenv/config";
 import { prisma } from "@/utils/db";
-import { currentUser, auth } from '@clerk/nextjs/server';
-// import { auth } from '@clerk/nextjs/server';
+import { currentUser} from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
   imageSchema,
@@ -15,46 +14,46 @@ import { revalidatePath } from 'next/cache';
 
 const getAuthUser = async () => {
   const user = await currentUser();
-  //  if (!user) return null;
-  //  if (user.id !== process.env.ADMIN_USER_ID) return null;
-  return user;
+    if (!user) redirect('/');
+    //  if (user.id !== process.env.ADMIN_USER_ID) return null;
+    return user as NonNullable<typeof user>;
 
 };
 
 export const requireAuthUser = async () => {
   const user = await currentUser();
   if (!user) throw new Error("Unauthorized");
-  return user;
+  return user as NonNullable<typeof user>;
+
 };
 
 
 // const getOptionalUser = async () => {
 //   return await currentUser()
 // }
-// const requireUser = async () => {
 
 export const getAdminUser = async () => {
   const user = await getAuthUser();
     // If there is no user, we are going to redirect back to the home page
     if (!user) return null;
-    if (user.id !== process.env.ADMIN_USER_ID) return null;
+    if (user.id !== process.env.ADMIN_USER_ID) redirect('/');
       // If everything is correct, we are going to return the user
   return user
 }
 
-// const requireAdmin = async () => {
-//   const user = await getAdminUser()
-//    // We are going to check for admin user
-//   // If the ID does not match, then essentially, we are going to redirect to the homepage
-//   // We only want the admin user to have access to the data
-//   // If a user gets access to the page, they will not be able to see any data
-//   // You can force your way to the admin product, but you are not going to see any data
-//   // because your ID does not match the admin one. You will just be directed to the homepage
-//   if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
-//   // If everything is correct we return a user
-//   // In some cases we are going to use the user value
-//   return user
-// }
+export const requireAdmin = async () => {
+  const user = await getAuthUser();
+   // We are going to check for admin user
+  // If the ID does not match, then essentially, we are going to redirect to the homepage
+  // We only want the admin user to have access to the data
+  // If a user gets access to the page, they will not be able to see any data
+  // You can force your way to the admin product, but you are not going to see any data
+  // because your ID does not match the admin one. You will just be directed to the homepage
+  if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
+  // If everything is correct we return a user
+  // In some cases we are going to use the user value
+  return user;
+}
 
 const renderError = (error:unknown): {message:string} => {
 // We access the error class, if that is the case, we use error.message
@@ -126,14 +125,14 @@ export const createProductAction = async (
   // How can we handle that?
   // There is going to be a helper function
   // There should definitely be a user & we can access the user.id
-    // const user = await currentUser()
+    //  const user = await currentUser()
     // typescript sees that if there is no user, we stop the execution
   //  if(!user redirect('/'))
     // We want to get the values out of the form data
     // We will use the get method & we will provide the name of the input
     // We are going to communicate with the database
-   const user = await getAuthUser();
-   if (!user) throw new Error("Unauthorized");
+const user = await getAuthUser();
+  if (!user) throw new Error("Unauthorized");
 
     try {
     // Unlike the previous inputs, we do not want to access it from rawData
@@ -141,7 +140,7 @@ export const createProductAction = async (
     // // We do want to access actually image manually.
       const file = formData.get('image') as File
        // // In order to do that, we need to use as a file
-      // console.log(rawData)
+      console.log(rawData)
       // This will throw the error immediately if the values do not match
       // If we are successful, we will have a toast message created
       // If not we will have a big error message. 
@@ -169,7 +168,7 @@ export const createProductAction = async (
        // return {message: 'product created'}
       // return {message: 'product created'}
     } catch(error) {
-      return renderError(error);
+       return renderError(error);
     }
      // If we are successful, We will redirect the admin user to the product page
     // where we display right away all of the products
@@ -180,7 +179,7 @@ export const createProductAction = async (
 export const fetchAdminProducts = async () => {
  // We fetch the product by its unique ID.
  // We want to look for all of the products
- await getAdminUser();
+  await getAdminUser();
    const products = await prisma.product.findMany({
     orderBy: {
       createdAt: 'desc',
@@ -193,7 +192,7 @@ export const fetchAdminProducts = async () => {
 export const deleteProductAction = async(prevState:{productId:string}) => {
   // We destructure this
   const {productId} = prevState
-  await getAdminUser();
+   await getAdminUser();
   try {
    const product =  await prisma.product.delete({
       where: {
@@ -224,7 +223,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
    
     export const updateProductAction = async(prevState:any, formData:FormData) => {
          // We return an object with a message
-        await getAdminUser();
+         await getAdminUser();
       try {
         const productId = formData.get('id') as string
         const rawData = Object.fromEntries(formData)
@@ -246,7 +245,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 
     export const updateProductImageAction = async(prevState:any, formData:FormData) => {
       // We return an object with a message
-      await getAuthUser();
+     await getAuthUser();
      // We are going to start by accessing the image as a file, a product ID, an old image URL
       try {
         const image = formData.get('image') as File
@@ -274,7 +273,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
     }
 
     export async function fetchFavoriteId({ productId }: { productId: string }) {
-          const user = await getAuthUser();
+           const user = await getAuthUser();
           if (!user) return null; // logged-out users simply have no favorites
           // ⭐ Prevent Prisma from ever receiving null
           // if (!userId) {
@@ -301,7 +300,7 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
       const user = await requireAuthUser();
       if (!user) throw new Error("Unauthorized");
       const { productId, favoriteId, pathname } = prevState;
-        // const { userId } = await auth();
+      //  const { userId } = await auth();
     
     try {
         if (favoriteId) {
@@ -323,13 +322,13 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
     }
 };
 
-export const fetchUserFavorites = async () => {
-  const user = await getAuthUser();
-  if (!user) throw new Error("Unauthorized");
-  const favorites = await prisma.favorite.findMany({
-    where: {
-      clerkId: user.id,
-    },
+ export const fetchUserFavorites = async () => {
+   const user = await getAuthUser();
+   if (!user) throw new Error("Unauthorized");
+   const favorites = await prisma.favorite.findMany({
+     where: {
+       clerkId: user.id,
+     },
     include: {
       product: true,
     },

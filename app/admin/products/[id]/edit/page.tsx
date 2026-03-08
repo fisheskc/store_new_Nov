@@ -6,14 +6,22 @@ import TextAreaInput from '@/components/form/TextAreaInput';
 import { SubmitButton } from '@/components/form/Buttons';
 import CheckboxInput from '@/components/form/CheckboxInput';
 import ImageInputContainer from '@/components/form/ImageInputContainer';
+import ImageInputClientWrapper from "./ImageInputClientWrapper";
+
+
+
 
 // We are looking for that ID. params is going to be the object
-async function EditProductPage({params, searchParams}: {params: Promise<{ id: string }>; searchParams: Promise<{ q?: string }>;}) {
- 
+export default async function EditProductPage({params }: {params: Promise<{ id: string }> }) {
+
   const {id} = await params
-  const { q } = await searchParams;
+  
+  // console.log("Edit page loaded", id);
+  // const { q } = searchParams;
   const product = await fetchAdminProductDetails(id)
   const {name, company, description, featured, price} = product
+
+  console.log("Edit page loaded");
     return (
       // We will use that default value prop
       // We want to communicate with the database. We are just displaying the toast.
@@ -23,10 +31,11 @@ async function EditProductPage({params, searchParams}: {params: Promise<{ id: st
       <h1 className='text-2xl font-semibold mb-8 capitalize'>update producct{id}</h1>
       <div className='border p-8 rounded'>
       {/* IMAGE INPUT CONTAINER */}
-      <ImageInputContainer action={updateProductImageAction} name={name} image={product.image} text='update image'>
+      <ImageInputClientWrapper
+        action={updateProductImageAction} name={name} image={product.image} text='update image'>
         <input type="hidden" name="id" value={id} />
         <input type='hidden' name='url' value={product.image} />
-      </ImageInputContainer>
+      </ImageInputClientWrapper>
       <FormContainer action={updateProductAction}>
         <div className='grid gap-4 md:grid-cols-2 my-4'>
           <input type="hidden" name="id" value={id} />
@@ -45,4 +54,3 @@ async function EditProductPage({params, searchParams}: {params: Promise<{ id: st
   )
 }
 
-export default EditProductPage

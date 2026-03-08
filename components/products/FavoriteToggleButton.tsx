@@ -5,7 +5,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { CardSignInButton } from '../form/Buttons';
 import { fetchFavoriteId} from '@/utils/actions';
-import FavoriteToggleForm from './FavoriteToggleForm';
+// import FavoriteToggleForm from './FavoriteToggleForm';
+import FavoriteToggleClient from "./FavoriteToggleClient";
 
 
 interface Props {
@@ -14,7 +15,7 @@ interface Props {
 
 // The type will be equal to string
 async function FavoriteToggleButton({productId}: Props) {
-  // const pathname = usePathname();
+  //  const pathname = usePathname();
   const {userId} = await auth()
   // const [isPending, startTransition] = useTransition();
   // We only run this code if the user is signed in
@@ -31,7 +32,11 @@ async function FavoriteToggleButton({productId}: Props) {
 
   // TypeScript is going to complain, because we have not set up the FavoriteToggleForm yet
   return (
-    <FavoriteToggleForm productId={productId} favoriteId={favoriteId} />
+    <FavoriteToggleClient
+      productId={productId}
+      favoriteId={favoriteId} 
+      userId={userId} 
+    />
   )
 }
 export default FavoriteToggleButton

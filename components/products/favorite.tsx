@@ -2,7 +2,7 @@
 
 // import React from 'react';
 import { auth } from "@clerk/nextjs/server";
-import { fetchFavoriteId} from '@/utils/actions';
+ import { fetchFavoriteId} from '@/utils/actions';
 import { CardSignInButton } from '@/components/form/Buttons';
 import FavoriteToggleForm from './FavoriteToggleForm';
 
@@ -21,7 +21,7 @@ export default async function Favorite({ productId }: FavoriteProps) {
     return <CardSignInButton />;
   }
   // If logged in → fetch favoriteId
-  const favoriteId = await fetchFavoriteId({productId});
+   const favoriteId = await fetchFavoriteId({productId});
   return (
     <FavoriteToggleForm favoriteId={favoriteId} productId={productId} />
   );
