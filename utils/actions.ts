@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import {
   imageSchema,
   productSchema,
+  reviewSchema,
   validateWithZodSchema,
 } from './schemas';
 import {deleteImage, uploadImage } from './supabase';
@@ -337,9 +338,35 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
 }
 
 export const createReviewAction = async(prevState:any,formData:FormData) => {
+  // We are going to use the user ID as our clerk ID.
+  // Only the user who has logged in can perform submit review funtionality
+  const user = await getAuthUser()
+  try {
+    // We want to pass in our data.
+    // We want to validate with Zod schema
+    const rawData = Object.fromEntries(formData)
+    const validatedFields = validateWithZodSchema(reviewSchema,rawData)
+    // We create the review
+    await prisma.review.create({
+      data: {
+        ...validatedFields,
+        clerkId:user.id,
+      }
+    })
+    // We also want to revalidate the path
+    // We will fetch all of the reviews for the product & we want to add the latest one
+    // it is going to be dynamic. We are going to use a template string, then product,&
+    // then we want to access the validateed field
+    revalidatePath(`/products/${validatedFields.productId}`)
+    return {message:'review submitted successfully'}
+  }
+    catch(error) {
+      return renderError(error)
+    }
+  }
  // For all our actions, what do we want to do?
- return {message:'review submitted successfully'}
-}
+ 
+
 
 // This is something we are going to call in that product details page.
 // We want to display all of the reviews for the product
