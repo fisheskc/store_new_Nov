@@ -7,6 +7,7 @@ import { formatCurrency } from '@/utils/format';
 // import ProductRating from '@/components/single-product/ProductRating';
 import { auth } from '@clerk/nextjs/server';
 import ClientProductSection from './ClientProductSection';
+// import ProductsGrid from '@/components/products/ProductsGrid';
 
 
 // Since this is dynamic, we have access to the param in the params prop.
@@ -25,12 +26,14 @@ async function SingleProductPage({ params }: { params: Promise<{ id: string }> }
         <BreadCrumbs name={product.name} />
 
         <ClientProductSection
-          id={id}
-          name={name}
-          image={image}
-          company={company}
-          description={description}
-          dollarsAmount={dollarsAmount}
+           id={product.id}
+           name={product.name}
+           image={product.image}
+           company={product.company}
+           description={product.description}
+           dollarsAmount={dollarsAmount}
+           productId={product.id}
+
         />
 
     </section>

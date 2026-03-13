@@ -22,7 +22,7 @@ function ShareButton({productId,name}:{productId:string,name:string}) {
     const url = process.env.NEXT_PUBLIC_WEBSITE_URL;
     // This is the actual single product page & therefore we want to use the full url
     // We will have our production URL, then products & then the product ID
-    const shareLink = `${url}/products/${{productId}}`;
+    const shareLink = `${url}/products/${productId}`;
     return (
     <Popover>
         <Button variant='outline' size='icon' className='p-2'>

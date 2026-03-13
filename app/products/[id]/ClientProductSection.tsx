@@ -7,6 +7,8 @@ import AddToCart from '@/components/single-product/AddToCart';
 import ProductRating from '@/components/single-product/ProductRating';
 // import { auth } from '@clerk/nextjs/server';
 import ShareButton from '@/components/single-product/ShareButton';
+import SubmitReview from '@/components/reviews/SubmitReview'
+import ProductReviews from '@/components/reviews/ProductReviews'
 
 interface ClientProductSectionProps {
   id: string;
@@ -15,6 +17,8 @@ interface ClientProductSectionProps {
   company: string;
   description: string;
   dollarsAmount: string;
+  productId: string;
+
 }
 // We render the share button here
 export default function ClientProductSection({
@@ -24,6 +28,7 @@ export default function ClientProductSection({
   company,
   description,
   dollarsAmount,
+  productId,
 }: ClientProductSectionProps) {
   return (
     <section>
@@ -54,6 +59,8 @@ export default function ClientProductSection({
         <p className="mt-6 leading-8 text-muted-foreground">{description}</p>
         <AddToCart productId={id} />
       </div>
+      <ProductReviews productId={id} />
+      <SubmitReview productId={id} />
     </section>
   );
 }

@@ -335,3 +335,17 @@ export const deleteProductAction = async(prevState:{productId:string}) => {
   });
   return favorites;
 }
+
+export const createReviewAction = async(prevState:any,formData:FormData) => {
+ // For all our actions, what do we want to do?
+ return {message:'review submitted successfully'}
+}
+
+// This is something we are going to call in that product details page.
+// We want to display all of the reviews for the product
+export const fetchProductReviews = async() => {}
+export const fetchProductReviewsByUser = async() => {}
+export const deleteReviewsAction = async() => {}
+// We will use when we are restricting the access
+export const findExistingReview = async() => {}
+export const fetchProductRating = async() => {}

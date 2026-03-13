@@ -29,6 +29,7 @@ model Product {
   // Since we have this relationship in place, we fetch tghe favourites, we will also be able to access the info on a product.
   // 
   favorites Favorite[]
+  reviews  Review[]
 }
 
 model Favorite {
@@ -38,4 +39,17 @@ model Favorite {
   productId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  clerkId  String
+  rating Int
+  comment String
+  authorName String
+  authorImageUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
 }
