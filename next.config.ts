@@ -53,6 +53,12 @@ const nextConfig: NextConfig = {
         pathname: '/**',
         },
         {
+        protocol: 'https',
+        // hostname: "316RIYY50Q14v1B5UtBziVp8E9j.supabase.co",
+        // hostname: "aubvbrlscmmlygjlapzn.supabase.co",
+        hostname: "img.clerk.com",
+        },
+        {
           protocol: "https",
           hostname: "img.clerk.com",
         },

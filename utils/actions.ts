@@ -355,7 +355,7 @@ export const createReviewAction = async(prevState:any,formData:FormData) => {
     })
     // We also want to revalidate the path
     // We will fetch all of the reviews for the product & we want to add the latest one
-    // it is going to be dynamic. We are going to use a template string, then product,&
+    // it is going to be dynamic. We are going to use a template string, then product &
     // then we want to access the validateed field
     revalidatePath(`/products/${validatedFields.productId}`)
     return {message:'review submitted successfully'}
@@ -370,9 +370,98 @@ export const createReviewAction = async(prevState:any,formData:FormData) => {
 
 // This is something we are going to call in that product details page.
 // We want to display all of the reviews for the product
-export const fetchProductReviews = async() => {}
-export const fetchProductReviewsByUser = async() => {}
-export const deleteReviewsAction = async() => {}
-// We will use when we are restricting the access
-export const findExistingReview = async() => {}
-export const fetchProductRating = async() => {}
+export const fetchProductReviews = async(productId:string) => {
+  const reviews = await prisma.review.findMany({
+    where: {
+      productId,
+    },
+    orderBy: {
+      createdAt:'desc'
+    }
+  })
+  return reviews
+}
+
+export const fetchProductRating = async(productId:string) => {
+  // We wiil use the groupBy method provide by Prisma
+  const result = await prisma.review.groupBy({
+    by:['productId'],
+    _avg: {
+      rating: true,
+      // We want gto know how many reviews we have.
+    },
+    _count: {
+      rating: true,
+    },
+    where: {
+      productId
+    }
+  })
+  // it might be a case where we do not have any reviews
+  // Why do we need to set some default values, some fallback values?
+    return {
+      // We are going to look here for a result, we have rating.
+      // We are accessing the first thing.
+      // This is going to return an array of objects & it might be undefined
+      // We are going to use optional chaining
+      // If there is no value, then we fall back to zero
+      rating: result[0]?._avg.rating?.toFixed(1) ?? 0,
+      count: result[0]?._count.rating?? 0,
+      // We will set up the default if there is no rating
+    }
+  }
+
+export const fetchProductReviewsByUser = async() => {
+  const user = await getAuthUser()
+  const reviews = await prisma.review.findMany({
+    where: {
+      clerkId:user.id
+      // We do want to access the product image & product name
+    },
+    select: {
+      id:true,
+      rating:true,
+      comment: true,
+      product:  {
+       select: {
+          image: true,
+          name: true
+       }
+      }
+    }
+  })
+    return reviews
+}
+// We will use the define option, prevState
+// The value is going to be the prevState
+export const deleteReviewAction = async(prevState:{reviewId:string}) => {
+  const {reviewId} = prevState
+  const user = await getAuthUser()
+  try {
+    await prisma.review.delete({
+      where: {
+        id: reviewId,
+        clerkId: user.id
+      }
+    })
+    revalidatePath('/reviews')
+    return {message: 'review deleted successfully'}
+  } catch(error) {
+    return renderError(error)
+  }
+}
+// It is looking for two things, the user Id, string & also the product ID
+export const findExistingReview = async(userId:string, productId:string) => {
+  return prisma.review.findFirst({
+    where: {
+      clerkId: userId,
+      productId,
+    }
+  })
+  // The result we are looking for in this case, is null.
+  // If this returns some value, it means that the user already left the review.
+  // So in that case, we will hide the button.
+  // Then we want to navigate to our single product page & we want to restrict access 
+  // to our submit review. We are going to get the user ID.
+}
+

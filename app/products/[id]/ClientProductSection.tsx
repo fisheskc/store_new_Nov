@@ -5,10 +5,11 @@ import Image from 'next/image';
 // import { formatCurrency } from '@/utils/format';
 import AddToCart from '@/components/single-product/AddToCart';
 import ProductRating from '@/components/single-product/ProductRating';
-// import { auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import ShareButton from '@/components/single-product/ShareButton';
 import SubmitReview from '@/components/reviews/SubmitReview'
-import ProductReviews from '@/components/reviews/ProductReviews'
+import ProductReviews from '@/components/reviews/ProductReviews';
+
 
 interface ClientProductSectionProps {
   id: string;
