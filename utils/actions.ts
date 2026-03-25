@@ -2,7 +2,7 @@
 
 import "dotenv/config";
 import { prisma } from "@/utils/db";
-import { currentUser} from '@clerk/nextjs/server';
+import { auth, currentUser} from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import {
   imageSchema,
@@ -12,6 +12,7 @@ import {
 } from './schemas';
 import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
+import { Cart } from "@prisma/client";
 
 const getAuthUser = async () => {
   const user = await currentUser();
@@ -464,4 +465,201 @@ export const findExistingReview = async(userId:string, productId:string) => {
   // Then we want to navigate to our single product page & we want to restrict access 
   // to our submit review. We are going to get the user ID.
 }
+
+export const fetchCartItems = async () => {
+  // The auth one is coming from the clerk. 
+  // We want to get the user ID, but potentially this can be undefined since
+  // This will be null
+  // It is a public route.
+  const {userId} = await auth()
+  const cart = await prisma.cart.findFirst({
+    where: {
+      // Potentially this can be null
+      // If this is an empty string, there is not going to be an instance which matches
+      clerkId:userId ?? ''
+    }, 
+    select: {
+      numItemsInCart: true,
+    }
+  })
+  return cart?.numItemsInCart || 0 
+};
+
+const fetchProduct = async (productId:string) => {
+   const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    }
+  })
+  // If there is no product, it means that there is something wrong.
+  // If this happens, we go to a catch one & we do not continue
+  if(!product) {
+    throw new Error('Product not found')
+  }
+  return product
+};
+
+
+const includeProductClause = {
+  // In the cartItems, we are pointing to a product as well
+    cartItems: {
+      include: {
+        // We want to include the entire product info
+        product: true
+      }
+    }
+  }
+
+
+
+// In the actions, we are ony going to access the properties that are directly
+// on the cart model, but we want iterate over cartItems.
+// At the momment, we have no access to this particular model. We need to use include
+// If there are any updates to the product, we always want in our cart to have the latest data
+export const fetchOrCreateCart = async ({userId,errorOnFailure=false}:{
+  userId:string, errorOnFailure?: boolean
+}) => {
+ let cart = await prisma.cart.findFirst({
+  where: {
+    clerkId:userId
+  },
+  include: includeProductClause
+ })
+ // If there is no cart
+ if(!cart && errorOnFailure) {
+  throw new Error('Cart not found')
+ }
+ // If the user has not created the cart when they are trying to add a product to a cart.
+ // If there is no cart, we need to set one as let, since we are going to override this,
+  if(!cart) {
+    cart = await prisma.cart.create({
+      // We have the cart in place
+      // We do need to provide the data
+      // Cart is actually only looking for one thing which is a clark Id
+      data: {
+        clerkId:userId
+      },
+      include: includeProductClause
+    })
+  }
+  return cart
+};
+
+const updateOrCreateCartItem = async ({productId,cartId,amount}:{
+  productId:string, cartId:string, amount:number
+}) => {
+  // We first want to fetch the cartItem
+  let cartItem = await prisma.cartItem.findFirst({
+    where:{
+      // We want to make sure the cartItem matches both
+      // If we are just going to use productId, as maybe it is in another cart
+      // If we are just going to use the cartId, then we are going to get the item,
+      // which might be a different product.
+      // Therefore, we need to combine both of them.
+      productId,
+      cartId,
+    }
+  })
+  if(cartItem) {
+    // Then we want to update, & pass in that amount
+    cartItem = await prisma.cartItem.update({
+      where: {
+        id: cartItem.id
+      },
+      data: {
+        // This is the current amount plus the new amount
+        // Ten items of the same product in the cart, 
+        amount:cartItem.amount + amount
+        // If this false, if there is no cart item, we want create to one
+      }
+    })
+  } else {
+    // We want to use cartItem, 
+    cartItem = await prisma.cartItem.create({
+      data:{
+        amount, productId, cartId
+      }
+    })
+  }
+};
+
+// We want this cart to match our cart model   
+export const updateCart = async (cart:Cart) => {
+  // We want to fetch all of the cart items that are in the user's cart
+  const cartItems = await prisma.cartItem.findMany({
+    where: {
+      // We want to use the product, because in there
+      cartId:cart.id
+    },
+    include: {
+      product:true
+    }
+  })
+  // In Prisma you can only do those aggregations essentially on one model
+  // You are not going to be able to do some aggregations if you have two models connected together
+  // Therefore we are using the cart items & we will do those calculations manually
+  let numItemsInCart = 0
+  let cartTotal =- 0
+  // We add the amount property to ItemsInCart & add all the amount values in the numItemsInCart
+  // In the cartTotal, we are going to multiply the item amount & we will access 
+  // the product price
+  for(const item of cartItems) {
+    // We want to get the price from the database
+    numItemsInCart += item.amount
+    // We then access the product
+    cartTotal += item.amount * item.product.price
+  }
+  const tax = cart.taxRate * cartTotal
+  // Potentially cartTotal can be null
+  // If cartTotal is null, it is going to be false
+  // In that case, we want set it equal to 0
+  // If not, it is actually to be equal to a cartShipping
+  // If there is no items in the cart
+  // We want to use cart.shipping if there is some number or zero.
+  const shipping = cartTotal? cart.shipping : 0
+  const orderTotal = cartTotal + tax + shipping
+  // We update the cart, that is the latest cart
+  const currentCart = await prisma.cart.update({
+    where: {
+      id:cart.id
+    },
+    data: {
+      // We want to access the currentCart
+      numItemsInCart, cartTotal, tax, orderTotal
+    },
+    include: includeProductClause
+  })
+  return currentCart
+};
+
+// At this point, we do not know whether the cart instance is presnt or not.
+// If there is no instance
+export const addToCartAction = async (prevState:any, formData: FormData) => {
+  const user =await getAuthUser()
+  try {
+    // We use the price directly from the database
+    // We want to check whether the product actually exists
+    // If it does not exists, we will essentially throw an error
+    // If the product exists, we will uzse it
+    // If not, then we will throw the error
+    const productId = formData.get('productId') as string
+    const amount = Number(formData.get('amount'))
+    await fetchProduct(productId)
+    const cart = await fetchOrCreateCart({userId:user.id})
+    // We want to use the same cart item, we want to update the amount
+    // If a cart item is not present, then we create one
+    // In this case, we are not looking for any data back
+    // Each user is going to have one cart
+    await updateOrCreateCartItem({productId, cartId:cart.id, amount})
+    // We just want to calculate the totals
+    await updateCart(cart)
+  } catch(error) {
+    return renderError(error)
+  }
+  redirect('/cart')
+};
+
+export const removeCartItemAction = async () => {};
+
+export const updateCartItemAction = async () => {};
 

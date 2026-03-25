@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { LuShoppingCart } from 'react-icons/lu';
 import Link from 'next/link';
+import { fetchCartItems } from '@/utils/actions';
 
 async function CartButton() {
-  // temp 
-  const numItemsInCart = 9
+  const numItemsInCart = await fetchCartItems()
+  // If everything is correct, we are going to display zero
   return (
     <Button asChild variant='outline' size='icon' className="flex justify-center items-centre relative">
       <Link href='/cart'>

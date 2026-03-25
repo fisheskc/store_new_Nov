@@ -87,6 +87,7 @@ export const IconButton = ({ actionType }: { actionType: actionType }) => {
 
 // This is the sign in button from Shadci. That is the one we display, if the user has not logged in. 
 export const CardSignInButton = () => {
+  //  const { pending } = useFormStatus();
   // We just want to render the sign in button from Clerk
   return (
     <SignInButton mode='modal'>
@@ -117,4 +118,12 @@ export const CardSubmitButton = ({isFavorite}:{isFavorite:boolean}) => {
       )}
   </Button>
   )
+}
+
+export const ProductSignInButton = () => {
+  return <SignInButton mode='modal'>
+    <Button type='button' className='mt-8 capitalize'>
+      Sign in 
+    </Button>
+  </SignInButton>
 }

@@ -30,7 +30,7 @@ async function SingleProductPage({ params }: { params: Promise<{ id: string }> }
     // This is only going to run if there is a user & we are actually looking for the null
     // If it is null, then this condition is going to pass.
     // If not, if there is something in there, then we are going to hide the button
-    // If is false, it means either the user has not logged in or the user already left the your review
+    // If is false, it means either the user has not logged in or the user already left your review
     const reviewDoesNotExist = userId && !(await findExistingReview(userId, product.id))
   return (
     <section>
