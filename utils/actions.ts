@@ -663,3 +663,6 @@ export const removeCartItemAction = async () => {};
 
 export const updateCartItemAction = async () => {};
 
+export const createOrderAction = async (prevState:any, formdata:Formdata) => {
+  return {message: 'order created'}
+}
