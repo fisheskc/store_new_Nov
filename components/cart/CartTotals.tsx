@@ -10,7 +10,8 @@ import { Cart } from '@prisma/client';
 // Why do we have the type?
 // Because we have the prop
 function CartTotals({cart}:{cart:Cart}) {
-  const {cartTotal, shipping, tax, orderTotal} = cart
+   if (!cart) return null; // or a loading state
+  const { cartTotal, shipping, tax, orderTotal } = cart;
   return (
     <div>
         <Card className='p-8'>

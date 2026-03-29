@@ -10,7 +10,7 @@ export const FirstColumn = ({name, image }:
     </div>
     )
   }
-  export const secondColumn = ({name, company, productId}:{name:string; company:string; productId:string}) => {
+  export const SecondColumn = ({name, company, productId}:{name:string; company:string; productId:string}) => {
     return (
       <div className="sm:w-48">
         <Link href={`/products/${productId}`}>

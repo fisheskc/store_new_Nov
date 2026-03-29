@@ -13,6 +13,7 @@ import {
 import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
 import { Cart } from "@prisma/client";
+import { CartItem } from './types';
 
 const getAuthUser = async () => {
   const user = await currentUser();
@@ -586,6 +587,7 @@ const updateOrCreateCartItem = async ({productId,cartId,amount}:{
 // We want this cart to match our cart model   
 export const updateCart = async (cart:Cart) => {
   // We want to fetch all of the cart items that are in the user's cart
+  // Fetch all cart items with product info
   const cartItems = await prisma.cartItem.findMany({
     where: {
       // We want to use the product, because in there
@@ -593,7 +595,10 @@ export const updateCart = async (cart:Cart) => {
     },
     include: {
       product:true
-    }
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
   })
   // In Prisma you can only do those aggregations essentially on one model
   // You are not going to be able to do some aggregations if you have two models connected together
@@ -629,7 +634,7 @@ export const updateCart = async (cart:Cart) => {
     },
     include: includeProductClause
   })
-  return currentCart
+ return { cartItems, currentCart };
 };
 
 // At this point, we do not know whether the cart instance is presnt or not.
@@ -659,10 +664,63 @@ export const addToCartAction = async (prevState:any, formData: FormData) => {
   redirect('/cart')
 };
 
-export const removeCartItemAction = async () => {};
+export const removeCartItemAction = async (
+  prevState: any,
+  formData: FormData
+) => {
+  const user = await getAuthUser()
+  try {
+    const cartItemId = formData.get('id') as string
+    // We want to fetch the cart, but in this case, we will pass in that error on failure & we will set it equal to true
+    // At this point, if we are trying to remove the item & the cart does not exist. We will have a valid cart
+    let cart = await fetchOrCreateCart({
+      userId:user.id,
+      errorOnFailure: true
+    })
+    await prisma.cartItem.delete({
+      // We do not want someone to just randomly remove other user's cart item, 
+      // Once we have removed this spefic cart item, we want to call update cart
+      // In the update cart, we are just iterating over the items that are left in the cart. We use the cart item ID, we remove this specific item, we access the user's card, & we recalculate the totals.
+      where: {
+        id:cartItemId,
+        cartId: cart.id,
+      }
+    })
+    // We provide the user's cart
+    // Then we have this item removed from the cart
+    await updateCart(cart)
+    revalidatePath('/cart')
+    return { message: 'Item removed from cart' };
+  } catch(error) {
+    return renderError(error)
+  }
+  
+};
 
-export const updateCartItemAction = async () => {};
+export const updateCartItemAction = async ({amount, cartItemId}:{amount:number;cartItemId: string}) => {
+  // We are looking for the user
+  const user = await getAuthUser()
+  try {
+    const cart = await fetchOrCreateCart({userId:user.id, errorOnFailure:true})
+    // We get back the cart & we want to update the cartItem
+    await prisma.cartItem.update({
+      where: {
+        id: cartItemId,
+        cartId: cart.id,
+      },
+      data: {
+        amount,
+      }
+    })
+    await updateCart(cart)
+    revalidatePath('/cart') 
+    return {message:'cart updated'}
+  } catch(error) {
+    return renderError(error) 
+  }
+};
 
-export const createOrderAction = async (prevState:any, formdata:Formdata) => {
+export const createOrderAction = async (prevState:any, formdata:FormData) => {
   return {message: 'order created'}
 }
+
