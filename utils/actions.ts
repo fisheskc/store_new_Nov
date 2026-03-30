@@ -14,6 +14,7 @@ import {deleteImage, uploadImage } from './supabase';
 import { revalidatePath } from 'next/cache';
 import { Cart } from "@prisma/client";
 import { CartItem } from './types';
+import { get } from "http";
 
 const getAuthUser = async () => {
   const user = await currentUser();
@@ -721,6 +722,88 @@ export const updateCartItemAction = async ({amount, cartItemId}:{amount:number;c
 };
 
 export const createOrderAction = async (prevState:any, formdata:FormData) => {
-  return {message: 'order created'}
+  const user = await getAuthUser()
+  // The reason we have these variables below is because we cannot call redirect in the try block
+  // This is why we need to store them first
+  let orderId: null | string = null
+  let cartId: null | string = null
+  try {
+    // We fetch the user's cart
+    const cart = await fetchOrCreateCart({userId:user.id, errorOnFailure:true})
+    // If there is no cart, there is a major issue in the application, because we definitely
+    // cannot create the order if there is no cart.
+    // We create the order instance.
+    // We want to remove all of the orders where the isPaid is false.
+    // Once we add the payment getaway, user will be able to abandon the cart
+    // However, we will still create the order
+    // Everytime we open up the embedded form, we will create this order
+    cartId = cart.id
+
+    await prisma.order.deleteMany({
+      where: {
+        clerkId: user.id,
+        isPaid:false
+      }
+    })
+
+    const order = await prisma.order.create({
+      data: {
+        clerkId:user.id,
+        products:cart.numItemsInCart,
+        orderTotal:cart.orderTotal,
+        tax:cart.tax,
+        shipping:cart.shipping,
+        email:user.emailAddresses[0].emailAddress,
+      }
+      // Right after we create the order, we do want to remove the exitsing cart.
+      // We are only going to remove the cart, once we know that the payment was successful.
+    })
+    await prisma.cart.delete({
+      // We remove the exitsing cart
+      where: {
+        id: cart.id
+      }
+  })
+  orderId = order.id
+  } catch(error) {
+    return renderError(error)
+  }
+  // We remove the fetch user orders & fetch admin orders as well
+  // We want to pass in some query params. The reason why we need those query paramms, is because later,
+  // we will use them in order to setup everything correctly.
+  // We also want to provide the cart, since we will use this value to later remove the cart
+  redirect(`/checkout?orderId${orderId}&cartId=${cartId}`)
+}
+
+export const fetchUserOrders = async () => {
+  const user = await getAuthUser()
+  const orders = await prisma.order.findMany({
+    where: {
+      clerkId:user.id,
+      isPaid:true,
+    },
+    // Ww want to set up the order buy.
+    orderBy: {
+      createdAt:'desc',
+    }  
+  })
+  return orders
+}
+
+export const fetchAdminOrders = async () => {
+  // This getAdminUser must be to setup a check
+  // So regular users cannot be access to some content, 
+  // which is meant only for the admin one.
+  const user = await getAdminUser()
+
+  const orders = await prisma.order.findMany({
+    where: {
+      isPaid:true
+    },
+    orderBy: {
+      createdAt:'desc',
+    }
+  })
+  return orders
 }
 

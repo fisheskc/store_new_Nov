@@ -7,3 +7,10 @@ export const formatCurrency = (amount: number | null) => {
     // We take in the integer & return the currency 
   }).format(value);
 };
+
+export const formatDate = (date:Date) => {
+  return new Intl.DateTimeFormat('en-US',{
+    year:'numeric', month: 'long', day:'numeric'
+  }).format(date)
+}
+
